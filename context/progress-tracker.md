@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Foundation setup
+- Editor chrome foundation
 
 ## Current Goal
 
-- Design system foundation is installed and ready for the next feature unit.
+- Editor chrome components from `context/feature-specs/02-editor.md` are implemented and ready for the next feature unit.
 
 ## Completed
 
@@ -18,6 +18,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added `lib/utils.ts` with the reusable `cn()` helper.
 - Rebuilt `app/globals.css` around the documented dark-only CSS variables and Tailwind token mappings.
 - Enabled the `dark` class at the root layout so generated dark variants are always active.
+- Created `components/editor/editor-navbar.tsx` with fixed-height left, center, and right navbar sections plus a state-aware sidebar toggle button.
+- Created `components/editor/project-sidebar.tsx` with a floating slide-in project sidebar, hidden-state focus isolation, tabs for My Projects and Shared, empty states, close control, and a full-width New Project button.
+- Added `components/editor/editor-dialog-shell.tsx` as the reusable future dialog surface pattern with title, optional description, content, and footer actions.
 
 ## In Progress
 
@@ -25,7 +28,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Start the next feature unit from `context/feature-specs/`.
+- Continue to the next feature unit from `context/feature-specs/`.
 
 ## Open Questions
 
@@ -40,5 +43,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - `npm run lint` passed.
 - `npx tsc --noEmit` passed.
+- `npm run lint` passed after editor chrome implementation.
+- `npx tsc --noEmit` passed after editor chrome implementation.
 - A direct `cn()` merge check passed via Node type stripping.
 - `npm run build` was attempted but blocked by sandboxed access to Google Fonts for `next/font/google`; the escalated rerun was rejected.
