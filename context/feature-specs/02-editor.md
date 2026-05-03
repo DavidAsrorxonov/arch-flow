@@ -19,7 +19,7 @@ Create `components/editor/project-sidebar.tsx`.
 
 Requirements:
 
-- sidebar shuold float above the editor canvas
+- sidebar should float above the editor canvas
 - opening it should not push page content
 - slides in from the left
 - accepts `isOpen` prop
