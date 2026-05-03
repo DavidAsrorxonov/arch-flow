@@ -23,6 +23,8 @@ Clicking `New Project` should open the Create Project dialog.
 - project name
 - live slug preview based on the name
 - preview updates as the user types
+- project names may contain symbols, but the generated slug must include at least one alphanumeric character
+- show validation when the project name cannot produce a usable slug
 
 ### Rename Project
 

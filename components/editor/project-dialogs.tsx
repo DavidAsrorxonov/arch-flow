@@ -23,6 +23,8 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
     dialogState,
     projectName,
     slugPreview,
+    projectNameError,
+    canSubmitProjectForm,
     isLoading,
     setProjectName,
     closeDialog,
@@ -77,15 +79,33 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
                   onChange={(event) => setProjectName(event.target.value)}
                   placeholder="Realtime checkout"
                   disabled={isLoading}
-                  className="text-white mt-2"
+                  className="mt-2 text-copy-primary"
+                  aria-invalid={Boolean(projectNameError)}
+                  aria-describedby={
+                    projectNameError ? "create-project-name-error" : undefined
+                  }
                 />
+                {projectNameError ? (
+                  <span
+                    id="create-project-name-error"
+                    className="block text-sm leading-5 text-destructive"
+                  >
+                    {projectNameError}
+                  </span>
+                ) : null}
               </label>
               <div className="rounded-xl border border-surface-border bg-subtle px-3 py-2">
                 <p className="text-xs font-medium uppercase tracking-normal text-copy-faint">
                   Slug preview
                 </p>
-                <p className="mt-1 font-mono text-sm text-brand">
-                  {slugPreview}
+                <p
+                  className={
+                    slugPreview
+                      ? "mt-1 font-mono text-sm text-brand"
+                      : "mt-1 font-mono text-sm text-copy-muted"
+                  }
+                >
+                  {slugPreview || "No slug available"}
                 </p>
               </div>
             </div>
@@ -100,7 +120,10 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading}>
+                <Button
+                  type="submit"
+                  disabled={isLoading || !canSubmitProjectForm}
+                >
                   Create
                 </Button>
               </div>
@@ -131,8 +154,20 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
                   onChange={(event) => setProjectName(event.target.value)}
                   disabled={isLoading}
                   autoFocus
-                  className="text-white mt-2"
+                  className="mt-2 text-copy-primary"
+                  aria-invalid={Boolean(projectNameError)}
+                  aria-describedby={
+                    projectNameError ? "rename-project-name-error" : undefined
+                  }
                 />
+                {projectNameError ? (
+                  <span
+                    id="rename-project-name-error"
+                    className="block text-sm leading-5 text-destructive"
+                  >
+                    {projectNameError}
+                  </span>
+                ) : null}
               </label>
             </div>
 
@@ -146,7 +181,10 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading}>
+                <Button
+                  type="submit"
+                  disabled={isLoading || !canSubmitProjectForm}
+                >
                   Rename
                 </Button>
               </div>

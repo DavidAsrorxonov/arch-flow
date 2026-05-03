@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- Project dialogs and editor home actions from `context/feature-specs/04-project-dialogs.md` are implemented and verified.
+- Project dialog slug validation from `context/feature-specs/04-project-dialogs.md` is implemented and verified.
 
 ## Completed
 
@@ -34,6 +34,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added create, rename, and delete project dialogs wired to editor home and sidebar actions.
 - Added owned-project rename/delete sidebar actions while shared projects hide actions.
 - Added a mobile-only project sidebar backdrop scrim that closes the sidebar when tapped.
+- Added create/rename validation so symbol-heavy project names are accepted in the input but must produce a usable alphanumeric slug.
 
 ## In Progress
 
@@ -66,3 +67,5 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run build` passed after auth implementation on an escalated rerun that allowed `next/font/google` to fetch Google Fonts.
 - `npm run lint` passed after project dialog implementation.
 - `npx tsc --noEmit` passed after project dialog implementation.
+- `npm run lint` passed after project slug validation.
+- `npx tsc --noEmit` passed after project slug validation.

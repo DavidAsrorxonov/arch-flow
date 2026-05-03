@@ -45,13 +45,25 @@ const initialSharedProjects: MockProject[] = [
 ];
 
 function slugifyProjectName(value: string) {
-  return (
-    value
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "untitled-project"
-  );
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getProjectNameError(value: string) {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return "Enter a project name.";
+  }
+
+  if (!slugifyProjectName(trimmedValue)) {
+    return "Use at least one letter or number so a project slug can be generated.";
+  }
+
+  return null;
 }
 
 export function useProjectDialogs() {
@@ -61,24 +73,38 @@ export function useProjectDialogs() {
   const [dialogState, setDialogState] = useState<DialogState | null>(null);
   const [projectName, setProjectName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSubmittedProjectForm, setHasSubmittedProjectForm] = useState(false);
 
   const slugPreview = useMemo(
     () => slugifyProjectName(projectName),
     [projectName],
   );
+  const projectNameError = useMemo(
+    () => getProjectNameError(projectName),
+    [projectName],
+  );
+  const shouldShowProjectNameError =
+    hasSubmittedProjectForm ||
+    (projectName.length > 0 && Boolean(projectNameError));
+  const visibleProjectNameError = shouldShowProjectNameError
+    ? projectNameError
+    : null;
 
   function openCreateDialog() {
     setProjectName("");
+    setHasSubmittedProjectForm(false);
     setDialogState({ mode: "create", project: null });
   }
 
   function openRenameDialog(project: MockProject) {
     setProjectName(project.name);
+    setHasSubmittedProjectForm(false);
     setDialogState({ mode: "rename", project });
   }
 
   function openDeleteDialog(project: MockProject) {
     setProjectName("");
+    setHasSubmittedProjectForm(false);
     setDialogState({ mode: "delete", project });
   }
 
@@ -89,12 +115,19 @@ export function useProjectDialogs() {
 
     setDialogState(null);
     setProjectName("");
+    setHasSubmittedProjectForm(false);
   }
 
   function createProject() {
+    setHasSubmittedProjectForm(true);
+
+    if (projectNameError) {
+      return;
+    }
+
     setIsLoading(true);
-    const name = projectName.trim() || "Untitled Project";
-    const slug = slugifyProjectName(name);
+    const name = projectName.trim();
+    const slug = slugPreview;
 
     setOwnedProjects((projects) => [
       {
@@ -109,6 +142,7 @@ export function useProjectDialogs() {
     setIsLoading(false);
     setDialogState(null);
     setProjectName("");
+    setHasSubmittedProjectForm(false);
   }
 
   function renameProject() {
@@ -116,9 +150,15 @@ export function useProjectDialogs() {
       return;
     }
 
+    setHasSubmittedProjectForm(true);
+
+    if (projectNameError) {
+      return;
+    }
+
     setIsLoading(true);
-    const name = projectName.trim() || dialogState.project.name;
-    const slug = slugifyProjectName(name);
+    const name = projectName.trim();
+    const slug = slugPreview;
 
     setOwnedProjects((projects) =>
       projects.map((project) =>
@@ -134,6 +174,7 @@ export function useProjectDialogs() {
     setIsLoading(false);
     setDialogState(null);
     setProjectName("");
+    setHasSubmittedProjectForm(false);
   }
 
   function deleteProject() {
@@ -147,6 +188,7 @@ export function useProjectDialogs() {
     );
     setIsLoading(false);
     setDialogState(null);
+    setHasSubmittedProjectForm(false);
   }
 
   return {
@@ -155,6 +197,8 @@ export function useProjectDialogs() {
     dialogState,
     projectName,
     slugPreview,
+    projectNameError: visibleProjectNameError,
+    canSubmitProjectForm: !projectNameError,
     isLoading,
     setProjectName,
     openCreateDialog,
