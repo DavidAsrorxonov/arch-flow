@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Authentication integration
+- Project dialog integration
 
 ## Current Goal
 
-- Auth feature from `context/feature-specs/03-auth.md` is implemented and verified.
+- Project dialogs and editor home actions from `context/feature-specs/04-project-dialogs.md` are implemented and verified.
 
 ## Completed
 
@@ -29,6 +29,11 @@ Update this file whenever the current phase, active feature, or implementation s
 - Updated `/` to redirect authenticated users to `/editor` and unauthenticated users to `/sign-in`.
 - Added a minimal `/editor` route using the existing editor chrome so the authenticated redirect target exists.
 - Added Clerk's built-in `UserButton` to the editor navbar right section.
+- Added the `/editor` home empty state with the specified heading, description, and New Project action.
+- Added a dedicated project dialog hook with mock owned/shared project data, dialog state, form state, slug preview, and loading state.
+- Added create, rename, and delete project dialogs wired to editor home and sidebar actions.
+- Added owned-project rename/delete sidebar actions while shared projects hide actions.
+- Added a mobile-only project sidebar backdrop scrim that closes the sidebar when tapped.
 
 ## In Progress
 
@@ -59,3 +64,5 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after auth implementation.
 - `npx tsc --noEmit` passed after auth implementation.
 - `npm run build` passed after auth implementation on an escalated rerun that allowed `next/font/google` to fetch Google Fonts.
+- `npm run lint` passed after project dialog implementation.
+- `npx tsc --noEmit` passed after project dialog implementation.
