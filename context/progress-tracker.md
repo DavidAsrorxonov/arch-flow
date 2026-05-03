@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Editor chrome foundation
+- Authentication integration
 
 ## Current Goal
 
-- Editor chrome components from `context/feature-specs/02-editor.md` are implemented and ready for the next feature unit.
+- Auth feature from `context/feature-specs/03-auth.md` is implemented and verified.
 
 ## Completed
 
@@ -21,6 +21,14 @@ Update this file whenever the current phase, active feature, or implementation s
 - Created `components/editor/editor-navbar.tsx` with fixed-height left, center, and right navbar sections plus a state-aware sidebar toggle button.
 - Created `components/editor/project-sidebar.tsx` with a floating slide-in project sidebar, hidden-state focus isolation, tabs for My Projects and Shared, empty states, close control, and a full-width New Project button.
 - Added `components/editor/editor-dialog-shell.tsx` as the reusable future dialog surface pattern with title, optional description, content, and footer actions.
+- Installed `@clerk/ui` for Clerk's current theme package.
+- Added shared Clerk appearance configuration in `lib/clerk-appearance.ts` using the `dark` theme and existing CSS variables.
+- Wrapped the root layout with `ClerkProvider`.
+- Added protected-by-default `proxy.ts`, with `/`, sign-in, and sign-up routes public.
+- Added `/sign-in` and `/sign-up` Clerk pages with the specified two-panel large-screen layout and form-only small-screen layout.
+- Updated `/` to redirect authenticated users to `/editor` and unauthenticated users to `/sign-in`.
+- Added a minimal `/editor` route using the existing editor chrome so the authenticated redirect target exists.
+- Added Clerk's built-in `UserButton` to the editor navbar right section.
 
 ## In Progress
 
@@ -38,6 +46,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - shadcn/ui generated files in `components/ui/` remain unmodified after CLI generation.
 - The app is dark-only: `:root` contains the dark palette, and the root `<html>` carries the `dark` class for shadcn variants.
+- Auth is protected-first through root `proxy.ts`; only `/`, the configured Clerk sign-in route, and the configured Clerk sign-up route are public.
 
 ## Session Notes
 
@@ -47,3 +56,6 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npx tsc --noEmit` passed after editor chrome implementation.
 - A direct `cn()` merge check passed via Node type stripping.
 - `npm run build` was attempted but blocked by sandboxed access to Google Fonts for `next/font/google`; the escalated rerun was rejected.
+- `npm run lint` passed after auth implementation.
+- `npx tsc --noEmit` passed after auth implementation.
+- `npm run build` passed after auth implementation on an escalated rerun that allowed `next/font/google` to fetch Google Fonts.
