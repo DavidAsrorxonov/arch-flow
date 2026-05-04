@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Editor home API wiring
+- Share dialog
 
 ## Current Goal
 
-- Editor home sidebar and dialogs from `context/feature-specs/07-wire-editor-home.md` are wired to the real project API and verified.
+- `context/feature-specs/09-share-dialog.md` is implemented and verified: workspace sharing opens from the navbar, owners can invite/remove collaborators and copy the project link, and collaborators can view the list read-only.
 
 ## Completed
 
@@ -48,7 +48,18 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added slug-plus-suffix room ID generation during project creation and pass that ID into `POST /api/projects` so project IDs and Liveblocks room IDs stay aligned.
 - Added a `409` API guard for generated project ID collisions during project creation.
 - Wired the project sidebar to real server-provided project data, project navigation links, active project highlighting, and owned-project rename/delete actions.
-- Added `/editor/[projectId]` as the project workspace route shell so project creation and sidebar navigation have a concrete workspace target.
+- Added `/editor/[roomId]` as the project workspace route shell so project creation and sidebar navigation have a concrete workspace target.
+- Added `lib/project-access.ts` with current Clerk identity lookup and owner-or-collaborator project access checks.
+- Added `components/editor/access-denied.tsx` for missing or unauthorized workspace access.
+- Added a server-rendered `/editor/[roomId]` page that redirects unauthenticated users to `/sign-in` and renders `AccessDenied` for missing or unauthorized projects.
+- Added `components/editor/editor-workspace-shell.tsx` with the full-viewport workspace layout, current project navbar title, existing project sidebar, current room highlighting, canvas placeholder, and right AI sidebar placeholder.
+- Extended `components/editor/editor-navbar.tsx` to support an optional project title and workspace actions.
+- Added collaborator API routes for listing, inviting, and removing project collaborators.
+- Added `lib/project-collaborators.ts` for collaborator email normalization, validation, and Clerk Backend API profile enrichment.
+- Added `types/collaborators.ts` with the share dialog response contracts.
+- Added `components/editor/share-dialog.tsx` with owner invite/remove controls, read-only collaborator mode, collaborator avatars/names when available from Clerk, and temporary `Copied!` link feedback.
+- Wired the workspace navbar Share button to open the share dialog.
+- Normalized Clerk email addresses before matching shared projects and accessible workspace records.
 
 ## In Progress
 
@@ -57,6 +68,7 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Next Up
 
 - Build the actual collaborative canvas workspace in a later feature unit.
+- Add AI chat only when its feature spec is active.
 
 ## Open Questions
 
@@ -68,6 +80,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - The app is dark-only: `:root` contains the dark palette, and the root `<html>` carries the `dark` class for shadcn variants.
 - Auth is protected-first through root `proxy.ts`; `/`, the configured Clerk sign-in route, the configured Clerk sign-up route, and `/api/projects` are public at the proxy layer. `/api/projects` performs its own route-level Clerk checks to return JSON `401` and `403` responses.
 - Project IDs double as Liveblocks room IDs; the create flow generates a slug-based ID with a short random suffix before calling the project API.
+- Workspace URLs use `/editor/[roomId]`; the room ID is the project ID.
+- Collaborators remain database email records only; Clerk Backend API is used only to enrich display names and avatars at read time.
 
 ## Session Notes
 
@@ -105,3 +119,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after adding `ProjectCollaborator.id`.
 - `npx tsc --noEmit` passed after adding `ProjectCollaborator.id`.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after implementing the editor workspace shell.
+- `npx tsc --noEmit` initially failed because `.next/types` still referenced the removed `/editor/[projectId]` route, then passed after `npx next typegen` regenerated route types.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun. The build output includes `/editor/[roomId]`.
+- `npm run lint` passed after implementing the share dialog.
+- `npx tsc --noEmit` passed after implementing the share dialog.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun. The build output includes `/api/projects/[projectId]/collaborators` and `/api/projects/[projectId]/collaborators/[collaboratorId]`.
