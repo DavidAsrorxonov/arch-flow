@@ -9,7 +9,7 @@ Owners can:
 
 Collaborators can:
 
-- veiw the collaborator list only
+- view the collaborator list only
 - not invite, remove, or manage access
 
 ## Clerk User Data

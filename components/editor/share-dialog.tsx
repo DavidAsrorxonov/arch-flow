@@ -58,7 +58,10 @@ function isCollaboratorListResponse(
     return false;
   }
 
-  return typeof (value as { canManageAccess?: unknown }).canManageAccess === "boolean";
+  return (
+    typeof (value as { canManageAccess?: unknown }).canManageAccess ===
+    "boolean"
+  );
 }
 
 export function ShareDialog({
@@ -186,6 +189,8 @@ export function ShareDialog({
           setCanManageAccess(payload.canManageAccess);
         }
       }
+    } catch (error) {
+      setError("Unable to invite collaborator.");
     } finally {
       setIsSubmitting(false);
     }
@@ -227,14 +232,17 @@ export function ShareDialog({
       return;
     }
 
-    await navigator.clipboard.writeText(projectLink);
-    setCopied(true);
+    try {
+      await navigator.clipboard.writeText(projectLink);
+      setCopied(true);
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
 
-    if (copiedTimeoutRef.current) {
-      clearTimeout(copiedTimeoutRef.current);
+      copiedTimeoutRef.current = setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setError("Failed to copy link to clipboard.");
     }
-
-    copiedTimeoutRef.current = setTimeout(() => setCopied(false), 1800);
   }
 
   return (
@@ -284,7 +292,10 @@ export function ShareDialog({
                 />
                 <Button type="submit" disabled={isSubmitting || !email.trim()}>
                   {isSubmitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    <Loader2
+                      className="h-4 w-4 animate-spin"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <Plus className="h-4 w-4" aria-hidden="true" />
                   )}
@@ -294,7 +305,9 @@ export function ShareDialog({
             </div>
           ) : null}
 
-          {error ? <p className="text-sm leading-5 text-destructive">{error}</p> : null}
+          {error ? (
+            <p className="text-sm leading-5 text-destructive">{error}</p>
+          ) : null}
 
           <div>
             <h3 className="text-sm font-semibold text-copy-primary">
@@ -304,7 +317,10 @@ export function ShareDialog({
             <div className="mt-3 space-y-2">
               {isLoading ? (
                 <div className="flex items-center gap-2 rounded-2xl border border-surface-border bg-subtle px-3 py-3 text-sm text-copy-muted">
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
                   Loading collaborators
                 </div>
               ) : collaborators.length === 0 ? (

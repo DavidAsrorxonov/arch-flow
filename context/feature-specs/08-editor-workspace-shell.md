@@ -29,7 +29,7 @@ Create `lib/project-access.ts` with helpers for:
 Build a full-viewport workspace layout with:
 
 - top navbar showing the project name
-- navbar acions: share button and AI sidebar toggle
+- navbar actions: share button and AI sidebar toggle
 - existing `ProjectSidebar` on the left
 - current room highlighted in the sidebar
 - central canvas placeholder with dark background and centered message
