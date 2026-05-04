@@ -2,6 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 
 import type { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { normalizeCollaboratorEmail } from "@/lib/project-collaborators";
 import type { ProjectListItem } from "@/types/projects";
 
 export const projectSelect = {
@@ -136,7 +137,9 @@ export async function getEditorProjectLists() {
 
   const user = await currentUser();
   const emailAddresses =
-    user?.emailAddresses.map((emailAddress) => emailAddress.emailAddress) ?? [];
+    user?.emailAddresses.map((emailAddress) =>
+      normalizeCollaboratorEmail(emailAddress.emailAddress),
+    ) ?? [];
 
   const [ownedProjects, sharedProjects] = await Promise.all([
     prisma.project.findMany({

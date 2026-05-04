@@ -2,6 +2,7 @@
 
 import { UserButton } from "@clerk/nextjs"
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import type { ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -9,12 +10,16 @@ import { cn } from "@/lib/utils"
 interface EditorNavbarProps {
   isSidebarOpen: boolean
   onToggleSidebar: () => void
+  projectName?: string
+  rightActions?: ReactNode
   className?: string
 }
 
 export function EditorNavbar({
   isSidebarOpen,
   onToggleSidebar,
+  projectName,
+  rightActions,
   className,
 }: EditorNavbarProps) {
   const SidebarIcon = isSidebarOpen ? PanelLeftClose : PanelLeftOpen
@@ -42,9 +47,16 @@ export function EditorNavbar({
         </Button>
       </div>
 
-      <div className="flex flex-1 items-center justify-center" />
+      <div className="flex min-w-0 flex-1 items-center justify-center px-4">
+        {projectName ? (
+          <p className="truncate text-sm font-semibold text-copy-primary">
+            {projectName}
+          </p>
+        ) : null}
+      </div>
 
-      <div className="flex flex-1 items-center justify-end">
+      <div className="flex flex-1 items-center justify-end gap-3">
+        {rightActions}
         <UserButton />
       </div>
     </header>
