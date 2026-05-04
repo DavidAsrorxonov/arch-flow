@@ -27,6 +27,7 @@ const signUpRoute = routeFromEnv(
 
 const isPublicRoute = createRouteMatcher([
   "/",
+  "/api/projects(.*)",
   `${signInRoute}(.*)`,
   `${signUpRoute}(.*)`,
 ]);

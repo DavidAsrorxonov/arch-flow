@@ -1,28 +1,32 @@
 "use client";
 
 import { Pencil, Plus, Trash2, X } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { MockProject } from "@/hooks/use-project-dialogs";
 import { cn } from "@/lib/utils";
+import type { ProjectListItem } from "@/types/projects";
 
 interface ProjectSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  ownedProjects: MockProject[];
-  sharedProjects: MockProject[];
+  activeProjectId?: string;
+  ownedProjects: ProjectListItem[];
+  sharedProjects: ProjectListItem[];
   onCreateProject: () => void;
-  onRenameProject: (project: MockProject) => void;
-  onDeleteProject: (project: MockProject) => void;
+  onRenameProject: (project: ProjectListItem) => void;
+  onDeleteProject: (project: ProjectListItem) => void;
   className?: string;
 }
 
 interface ProjectListProps {
-  projects: MockProject[];
+  projects: ProjectListItem[];
   emptyDescription: string;
-  onRenameProject: (project: MockProject) => void;
-  onDeleteProject: (project: MockProject) => void;
+  activeProjectId?: string;
+  onSelectProject: () => void;
+  onRenameProject: (project: ProjectListItem) => void;
+  onDeleteProject: (project: ProjectListItem) => void;
 }
 
 function EmptyProjectState({ description }: { description: string }) {
@@ -37,6 +41,8 @@ function EmptyProjectState({ description }: { description: string }) {
 function ProjectList({
   projects,
   emptyDescription,
+  activeProjectId,
+  onSelectProject,
   onRenameProject,
   onDeleteProject,
 }: ProjectListProps) {
@@ -49,9 +55,19 @@ function ProjectList({
       {projects.map((project) => (
         <div
           key={project.id}
-          className="group flex min-h-16 items-center gap-3 rounded-2xl border border-surface-border bg-subtle/60 px-3 py-2"
+          className={cn(
+            "group flex min-h-16 items-center gap-3 rounded-2xl border bg-subtle/60 px-3 py-2 transition-colors",
+            project.id === activeProjectId
+              ? "border-brand bg-accent-dim"
+              : "border-surface-border hover:border-border-subtle",
+          )}
         >
-          <div className="min-w-0 flex-1">
+          <Link
+            href={`/editor/${encodeURIComponent(project.id)}`}
+            className="min-w-0 flex-1 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-brand/70"
+            aria-current={project.id === activeProjectId ? "page" : undefined}
+            onClick={onSelectProject}
+          >
             <p className="truncate text-sm font-medium text-copy-primary">
               {project.name}
             </p>
@@ -59,7 +75,7 @@ function ProjectList({
               {project.slug}
             </p>
             <p className="mt-1 text-xs text-copy-faint">{project.ownerLabel}</p>
-          </div>
+          </Link>
 
           {project.isOwned ? (
             <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
@@ -92,6 +108,7 @@ function ProjectList({
 export function ProjectSidebar({
   isOpen,
   onClose,
+  activeProjectId,
   ownedProjects,
   sharedProjects,
   onCreateProject,
@@ -144,6 +161,8 @@ export function ProjectSidebar({
             <ProjectList
               projects={ownedProjects}
               emptyDescription="Create a project to start building architecture workspaces."
+              activeProjectId={activeProjectId}
+              onSelectProject={onClose}
               onRenameProject={onRenameProject}
               onDeleteProject={onDeleteProject}
             />
@@ -152,6 +171,8 @@ export function ProjectSidebar({
             <ProjectList
               projects={sharedProjects}
               emptyDescription="Shared collaborator projects will appear here."
+              activeProjectId={activeProjectId}
+              onSelectProject={onClose}
               onRenameProject={onRenameProject}
               onDeleteProject={onDeleteProject}
             />
