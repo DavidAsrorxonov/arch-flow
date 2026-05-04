@@ -12,42 +12,43 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { useProjectDialogs } from "@/hooks/use-project-dialogs";
+import type { useProjectActions } from "@/hooks/use-project-actions";
 
 interface ProjectDialogsProps {
-  dialogs: ReturnType<typeof useProjectDialogs>;
+  actions: ReturnType<typeof useProjectActions>;
 }
 
-export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
+export function ProjectDialogs({ actions }: ProjectDialogsProps) {
   const {
     dialogState,
     projectName,
-    slugPreview,
+    roomIdPreview,
     projectNameError,
     canSubmitProjectForm,
     isLoading,
+    formError,
     setProjectName,
     closeDialog,
     createProject,
     renameProject,
     deleteProject,
-  } = dialogs;
+  } = actions;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (dialogState?.mode === "create") {
-      createProject();
+      void createProject();
       return;
     }
 
     if (dialogState?.mode === "rename") {
-      renameProject();
+      void renameProject();
       return;
     }
 
     if (dialogState?.mode === "delete") {
-      deleteProject();
+      void deleteProject();
     }
   }
 
@@ -57,7 +58,14 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
 
   return (
     <>
-      <Dialog open={isCreateOpen} onOpenChange={closeDialog}>
+      <Dialog
+        open={isCreateOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeDialog();
+          }
+        }}
+      >
         <DialogContent className="rounded-3xl border-surface-border bg-elevated p-6 text-copy-primary sm:max-w-md">
           <form onSubmit={handleSubmit}>
             <DialogHeader>
@@ -96,18 +104,23 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
               </label>
               <div className="rounded-xl border border-surface-border bg-subtle px-3 py-2">
                 <p className="text-xs font-medium uppercase tracking-normal text-copy-faint">
-                  Slug preview
+                  Room ID preview
                 </p>
                 <p
                   className={
-                    slugPreview
+                    roomIdPreview
                       ? "mt-1 font-mono text-sm text-brand"
                       : "mt-1 font-mono text-sm text-copy-muted"
                   }
                 >
-                  {slugPreview || "No slug available"}
+                  {roomIdPreview || "No room ID available"}
                 </p>
               </div>
+              {formError ? (
+                <p className="text-sm leading-5 text-destructive">
+                  {formError}
+                </p>
+              ) : null}
             </div>
 
             <DialogFooter className="mt-6 border-surface-border bg-transparent p-0">
@@ -132,7 +145,14 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isRenameOpen} onOpenChange={closeDialog}>
+      <Dialog
+        open={isRenameOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeDialog();
+          }
+        }}
+      >
         <DialogContent className="rounded-3xl border-surface-border bg-elevated p-6 text-copy-primary sm:max-w-md">
           <form onSubmit={handleSubmit}>
             <DialogHeader>
@@ -168,6 +188,11 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
                     {projectNameError}
                   </span>
                 ) : null}
+                {formError ? (
+                  <span className="block text-sm leading-5 text-destructive">
+                    {formError}
+                  </span>
+                ) : null}
               </label>
             </div>
 
@@ -193,7 +218,14 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleteOpen} onOpenChange={closeDialog}>
+      <Dialog
+        open={isDeleteOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeDialog();
+          }
+        }}
+      >
         <DialogContent className="rounded-3xl border-surface-border bg-elevated p-6 text-copy-primary sm:max-w-md">
           <form onSubmit={handleSubmit}>
             <DialogHeader>
@@ -202,9 +234,14 @@ export function ProjectDialogs({ dialogs }: ProjectDialogsProps) {
               </DialogTitle>
               <DialogDescription className="text-copy-muted">
                 Delete {dialogState?.project?.name}? This removes the project
-                from the mock list for this session.
+                and its collaborator access.
               </DialogDescription>
             </DialogHeader>
+            {formError ? (
+              <p className="mt-6 text-sm leading-5 text-destructive">
+                {formError}
+              </p>
+            ) : null}
 
             <DialogFooter className="mt-6 border-surface-border bg-transparent p-0">
               <div className="flex gap-4 mt-4">
