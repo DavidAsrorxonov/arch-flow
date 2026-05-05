@@ -20,7 +20,13 @@ import {
 
 import { CanvasShape } from "@/components/editor/canvas-shape";
 import { cn } from "@/lib/utils";
-import type { CanvasEdge, CanvasNode, CanvasNodeShape } from "@/types/canvas";
+import {
+  NODE_COLORS,
+  type CanvasEdge,
+  type CanvasNode,
+  type CanvasNodeColor,
+  type CanvasNodeShape,
+} from "@/types/canvas";
 
 const HANDLE_POSITIONS = [
   Position.Top,
@@ -104,19 +110,26 @@ export function CanvasNodeRenderer({
         isVisible={selected}
         minWidth={MIN_NODE_WIDTH}
         minHeight={MIN_NODE_HEIGHT}
-        color="var(--accent-primary)"
+        color={data.color.text}
         handleStyle={{
           width: 8,
           height: 8,
           backgroundColor: "var(--bg-surface)",
-          border: "1px solid var(--accent-primary)",
+          border: `1px solid ${data.color.text}`,
           borderRadius: 999,
         }}
         lineStyle={{
-          borderColor: "var(--accent-primary)",
+          borderColor: data.color.text,
           opacity: 0.55,
         }}
       />
+      {selected ? (
+        <NodeColorToolbar
+          activeColor={data.color}
+          onSelectColor={(color) => updateNodeData(id, { color })}
+          onCanvasInteraction={stopCanvasInteraction}
+        />
+      ) : null}
       <CanvasShape shape={data.shape} color={data.color} selected={selected} />
       <div
         className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-3 py-2 text-center text-sm font-medium leading-5 text-[color:var(--node-text)]"
@@ -160,6 +173,64 @@ export function CanvasNodeRenderer({
       {HANDLE_POSITIONS.map((position) => (
         <ConnectionHandlePair key={position} position={position} />
       ))}
+    </div>
+  );
+}
+
+function NodeColorToolbar({
+  activeColor,
+  onSelectColor,
+  onCanvasInteraction,
+}: {
+  activeColor: CanvasNodeColor;
+  onSelectColor: (color: CanvasNodeColor) => void;
+  onCanvasInteraction: (event: SyntheticEvent) => void;
+}) {
+  return (
+    <div
+      className="nodrag nopan nowheel absolute -top-10 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-xl border border-surface-border bg-elevated/95 p-1 shadow-lg shadow-base/50 backdrop-blur"
+      onPointerDown={onCanvasInteraction}
+      onMouseDown={onCanvasInteraction}
+      onClick={onCanvasInteraction}
+      onDoubleClick={onCanvasInteraction}
+    >
+      {NODE_COLORS.map((color, index) => {
+        const isActive =
+          color.fill === activeColor.fill && color.text === activeColor.text;
+        const swatchStyle = {
+          "--swatch-fill": color.fill,
+          "--swatch-text": color.text,
+          "--swatch-glow": `color-mix(in srgb, ${color.text} 38%, transparent)`,
+          backgroundColor: "var(--swatch-fill)",
+          borderColor: isActive ? "var(--swatch-text)" : "var(--border-subtle)",
+        } as CSSProperties;
+
+        return (
+          <button
+            key={`${color.fill}-${color.text}`}
+            type="button"
+            aria-label={`Apply node color ${index + 1}`}
+            aria-pressed={isActive}
+            className={cn(
+              "flex h-6 w-6 items-center justify-center rounded-xl border transition-[border-color,box-shadow,transform] hover:scale-105 hover:shadow-[0_0_0_3px_var(--swatch-glow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--swatch-text)] focus-visible:ring-offset-2 focus-visible:ring-offset-elevated",
+              isActive && "shadow-[0_0_0_2px_var(--swatch-glow)]",
+            )}
+            style={swatchStyle}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSelectColor(color);
+            }}
+            onPointerDown={onCanvasInteraction}
+            onMouseDown={onCanvasInteraction}
+            onDoubleClick={onCanvasInteraction}
+          >
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: "var(--swatch-text)" }}
+            />
+          </button>
+        );
+      })}
     </div>
   );
 }

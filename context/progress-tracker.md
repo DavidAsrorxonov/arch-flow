@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Node editing
+- Node color toolbar
 
 ## Current Goal
 
-- `context/feature-specs/14-node-editing.md` is implemented and verified: selected canvas nodes show subtle resize handles with minimum dimensions, and node labels can be edited inline through the existing collaborative node state flow.
+- `context/feature-specs/15-nodes-color-toolbar.md` is implemented and verified: selected canvas nodes show a floating predefined color-pair toolbar, and swatch selection updates node background and text color through the existing collaborative canvas state.
 
 ## Completed
 
@@ -85,6 +85,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added centered inline node label display, empty-label placeholder text, and double-click-to-edit behavior.
 - Added textarea-based inline label editing that updates node labels through `useReactFlow().updateNodeData()` as users type.
 - Added blur and Escape handling to close label editing while preventing textarea interactions from dragging or panning the canvas.
+- Added a selected-node floating color toolbar with one swatch for each predefined node background/text color pair.
+- Wired color swatches to update node color data through `useReactFlow().updateNodeData()` so changes stay inside the existing Liveblocks-backed canvas state.
+- Updated selected node outlines and resize handles to reflect the active node text color while preserving the selected node background/text pair.
 
 ## In Progress
 
@@ -176,3 +179,6 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after node editing implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after node editing implementation.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after node color toolbar implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after node color toolbar implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after node color toolbar implementation.

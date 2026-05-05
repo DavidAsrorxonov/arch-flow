@@ -13,7 +13,7 @@ interface CanvasShapeProps {
   children?: ReactNode;
 }
 
-const selectedStroke = "var(--accent-primary)";
+const selectedStroke = "var(--node-text)";
 const restStroke = "var(--border-subtle)";
 
 export function CanvasShape({
@@ -35,7 +35,8 @@ export function CanvasShape({
       <div
         className={cn(
           "relative flex h-full min-h-12 w-full min-w-12 items-center justify-center text-center text-sm font-medium text-[color:var(--node-text)]",
-          selected && "drop-shadow-[0_0_12px_var(--accent-primary-dim)]",
+          selected &&
+            "drop-shadow-[0_0_10px_color-mix(in_srgb,var(--node-text)_22%,transparent)]",
           className,
         )}
         style={shapeStyle}
@@ -57,8 +58,8 @@ export function CanvasShape({
         shape === "rectangle" && "rounded-xl",
         shape === "pill" && "rounded-full",
         shape === "circle" && "rounded-full px-3 py-3",
-        selected ? "border-brand" : "border-border-subtle",
-        selected && "shadow-[0_0_0_1px_var(--accent-primary-dim)]",
+        selected ? "border-[color:var(--node-text)]" : "border-border-subtle",
+        selected && "shadow-[0_0_0_1px_color-mix(in_srgb,var(--node-text)_18%,transparent)]",
         className,
       )}
       style={{
