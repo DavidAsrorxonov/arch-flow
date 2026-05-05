@@ -3,6 +3,7 @@
 import { Bot, PanelRightClose, PanelRightOpen, Share2 } from "lucide-react";
 import { useState } from "react";
 
+import { CollaborativeCanvas } from "@/components/editor/collaborative-canvas";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
@@ -79,15 +80,8 @@ export function EditorWorkspaceShell({
 
       <main className="min-h-0 flex-1 overflow-hidden bg-base">
         <div className="flex h-[calc(100vh-3.5rem)] min-h-0">
-          <section className="flex min-w-0 flex-1 items-center justify-center bg-base px-6">
-            <div className="text-center">
-              <p className="text-sm font-medium text-copy-secondary">
-                Canvas workspace placeholder
-              </p>
-              <p className="mt-2 font-mono text-xs text-copy-faint">
-                {project.id}
-              </p>
-            </div>
+          <section className="min-w-0 flex-1 bg-base">
+            <CollaborativeCanvas roomId={project.id} />
           </section>
 
           <aside

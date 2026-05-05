@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Liveblocks setup
+- Base canvas
 
 ## Current Goal
 
-- `context/feature-specs/10-liveblocks-setup.md` is implemented and verified: Liveblocks app types, cached server client, deterministic cursor colors, room creation, and Clerk-protected room token issuance are in place.
+- `context/feature-specs/11-base-canvas.md` is implemented and verified: the workspace renders a Liveblocks-backed React Flow canvas with synced empty nodes and edges, MiniMap, dot-pattern background, loose connections, and typed shared canvas data.
 
 ## Completed
 
@@ -66,6 +66,11 @@ Update this file whenever the current phase, active feature, or implementation s
 - Extended the Clerk project identity helper with display name and avatar URL metadata for Liveblocks sessions.
 - Added `POST /api/liveblocks-auth` with JSON body validation, Clerk auth, project access checks, private room creation via the project ID, and room-scoped Liveblocks session authorization.
 - Allowed `/api/liveblocks-auth` through the Clerk proxy layer so the route handler can return explicit JSON `401` and `403` responses.
+- Added `types/canvas.ts` with shared canvas node data, node color palette, node shape list, and `canvasNode` / `canvasEdge` React Flow types.
+- Extended `liveblocks.config.ts` with an optional typed `flow` storage key for Liveblocks React Flow.
+- Imported the React Flow stylesheet through `app/globals.css`.
+- Added `components/editor/collaborative-canvas.tsx` with `LiveblocksProvider`, `RoomProvider`, `ClientSideSuspense`, initial presence, Liveblocks error fallback, and `useLiveblocksFlow` wired to React Flow.
+- Replaced the workspace canvas placeholder with the collaborative canvas surface while keeping the `/editor/[roomId]` page server-side.
 
 ## In Progress
 
@@ -73,7 +78,8 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Build the actual collaborative canvas workspace in a later feature unit.
+- Add custom node and edge rendering only when its feature spec is active.
+- Add canvas controls, persistence, starter imports, and AI behavior only when their feature specs are active.
 - Add AI chat only when its feature spec is active.
 
 ## Open Questions
@@ -90,6 +96,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Collaborators remain database email records only; Clerk Backend API is used only to enrich display names and avatars at read time.
 - Liveblocks rooms are created as private rooms with `defaultAccesses: []`; application authorization is enforced before issuing a room-scoped session token.
 - Liveblocks cursor colors are deterministic from the Clerk user ID and come from a fixed palette in `lib/liveblocks.ts`.
+- React Flow canvas state is stored under Liveblocks Storage key `flow`; the key is optional in the app type because `useLiveblocksFlow` initializes it with empty nodes and edges after storage loads.
 
 ## Session Notes
 
@@ -136,3 +143,6 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after Liveblocks setup with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after Liveblocks setup.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun. The build output includes `/api/liveblocks-auth`.
+- `npm run lint` passed after base canvas implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after base canvas implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun. The build output includes `/editor/[roomId]`.
