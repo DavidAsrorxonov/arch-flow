@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Share dialog
+- Shape panel
 
 ## Current Goal
 
-- `context/feature-specs/09-share-dialog.md` is implemented and verified: workspace sharing opens from the navbar, owners can invite/remove collaborators and copy the project link, and collaborators can view the list read-only.
+- `context/feature-specs/12-shape-panel.md` is implemented and verified: the workspace canvas has a bottom floating shape toolbar, draggable shape payloads with default sizes, drop-to-create behavior, and a basic custom canvas node renderer.
 
 ## Completed
 
@@ -60,6 +60,21 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added `components/editor/share-dialog.tsx` with owner invite/remove controls, read-only collaborator mode, collaborator avatars/names when available from Clerk, and temporary `Copied!` link feedback.
 - Wired the workspace navbar Share button to open the share dialog.
 - Normalized Clerk email addresses before matching shared projects and accessible workspace records.
+- Installed `@liveblocks/node` because the server SDK was missing from the project dependencies.
+- Configured `liveblocks.config.ts` with typed cursor presence, `isThinking`, and user metadata for name, avatar, and cursor color.
+- Added `lib/liveblocks.ts` with a cached Liveblocks node client and deterministic user ID to cursor color mapping.
+- Extended the Clerk project identity helper with display name and avatar URL metadata for Liveblocks sessions.
+- Added `POST /api/liveblocks-auth` with JSON body validation, Clerk auth, project access checks, private room creation via the project ID, and room-scoped Liveblocks session authorization.
+- Allowed `/api/liveblocks-auth` through the Clerk proxy layer so the route handler can return explicit JSON `401` and `403` responses.
+- Added `types/canvas.ts` with shared canvas node data, node color palette, node shape list, and `canvasNode` / `canvasEdge` React Flow types.
+- Extended `liveblocks.config.ts` with an optional typed `flow` storage key for Liveblocks React Flow.
+- Imported the React Flow stylesheet through `app/globals.css`.
+- Added `components/editor/collaborative-canvas.tsx` with `LiveblocksProvider`, `RoomProvider`, `ClientSideSuspense`, initial presence, Liveblocks error fallback, and `useLiveblocksFlow` wired to React Flow.
+- Replaced the workspace canvas placeholder with the collaborative canvas surface while keeping the `/editor/[roomId]` page server-side.
+- Added `components/editor/shape-panel.tsx` with a bottom-center floating pill toolbar and draggable icon buttons for rectangle, diamond, circle, pill, cylinder, and hexagon nodes.
+- Added typed shape drag payload parsing with shape names and sensible default sizes for each supported node shape.
+- Added React Flow dragover and drop handling to convert screen coordinates to canvas coordinates and create Liveblocks-synced `canvasNode` nodes with empty labels, default node color, dragged shape data, and IDs generated from shape name, timestamp, and a counter.
+- Added `components/editor/canvas-node.tsx` as the basic custom `canvasNode` renderer for this unit, rendering every shape as a simple bordered rectangle with centered label text.
 
 ## In Progress
 
@@ -67,7 +82,9 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Build the actual collaborative canvas workspace in a later feature unit.
+- Add shape-specific custom node visuals only when its feature spec is active.
+- Add custom edge rendering only when its feature spec is active.
+- Add canvas controls, persistence, starter imports, and AI behavior only when their feature specs are active.
 - Add AI chat only when its feature spec is active.
 
 ## Open Questions
@@ -82,6 +99,10 @@ Update this file whenever the current phase, active feature, or implementation s
 - Project IDs double as Liveblocks room IDs; the create flow generates a slug-based ID with a short random suffix before calling the project API.
 - Workspace URLs use `/editor/[roomId]`; the room ID is the project ID.
 - Collaborators remain database email records only; Clerk Backend API is used only to enrich display names and avatars at read time.
+- Liveblocks rooms are created as private rooms with `defaultAccesses: []`; application authorization is enforced before issuing a room-scoped session token.
+- Liveblocks cursor colors are deterministic from the Clerk user ID and come from a fixed palette in `lib/liveblocks.ts`.
+- React Flow canvas state is stored under Liveblocks Storage key `flow`; the key is optional in the app type because `useLiveblocksFlow` initializes it with empty nodes and edges after storage loads.
+- Shape drops create nodes through `ReactFlowInstance.addNodes()`, which triggers the controlled `onNodesChange` path backed by `useLiveblocksFlow`.
 
 ## Session Notes
 
@@ -125,3 +146,12 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after implementing the share dialog.
 - `npx tsc --noEmit` passed after implementing the share dialog.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun. The build output includes `/api/projects/[projectId]/collaborators` and `/api/projects/[projectId]/collaborators/[collaboratorId]`.
+- `npm run lint` passed after Liveblocks setup with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after Liveblocks setup.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun. The build output includes `/api/liveblocks-auth`.
+- `npm run lint` passed after base canvas implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after base canvas implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun. The build output includes `/editor/[roomId]`.
+- `npm run lint` passed after shape panel implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after shape panel implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.

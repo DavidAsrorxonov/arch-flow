@@ -27,6 +27,7 @@ const signUpRoute = routeFromEnv(
 
 const isPublicRoute = createRouteMatcher([
   "/",
+  "/api/liveblocks-auth",
   "/api/projects(.*)",
   `${signInRoute}(.*)`,
   `${signUpRoute}(.*)`,
