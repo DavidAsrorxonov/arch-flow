@@ -7,6 +7,8 @@ import { normalizeCollaboratorEmail } from "@/lib/project-collaborators";
 export interface ClerkProjectIdentity {
   userId: string;
   primaryEmail: string | null;
+  displayName: string;
+  avatarUrl: string;
 }
 
 export const accessibleProjectSelect = {
@@ -34,10 +36,17 @@ export async function getCurrentClerkIdentity() {
   const user = await currentUser();
   const primaryEmail =
     user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses[0]?.emailAddress;
+  const displayName =
+    user?.fullName ??
+    user?.username ??
+    user?.primaryEmailAddress?.emailAddress ??
+    "Collaborator";
 
   return {
     userId,
     primaryEmail: primaryEmail ? normalizeCollaboratorEmail(primaryEmail) : null,
+    displayName,
+    avatarUrl: user?.imageUrl ?? "",
   } satisfies ClerkProjectIdentity;
 }
 
