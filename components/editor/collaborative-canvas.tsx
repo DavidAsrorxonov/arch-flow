@@ -4,7 +4,11 @@ import {
   ClientSideSuspense,
   LiveblocksProvider,
   RoomProvider,
+  useCanRedo,
+  useCanUndo,
   useErrorListener,
+  useRedo,
+  useUndo,
 } from "@liveblocks/react";
 import { useLiveblocksFlow } from "@liveblocks/react-flow";
 import {
@@ -13,7 +17,6 @@ import {
   ConnectionLineType,
   ConnectionMode,
   MarkerType,
-  MiniMap,
   ReactFlow,
   type DefaultEdgeOptions,
   type EdgeTypes,
@@ -23,12 +26,14 @@ import {
 import { useCallback, useMemo, useRef, useState, type DragEvent } from "react";
 
 import { CanvasEdgeRenderer } from "@/components/editor/canvas-edge";
+import { CanvasControlBar } from "@/components/editor/canvas-control-bar";
 import { CanvasNodeRenderer } from "@/components/editor/canvas-node";
 import {
   parseShapeDragPayload,
   ShapePanel,
   SHAPE_DRAG_MIME_TYPE,
 } from "@/components/editor/shape-panel";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import type { CanvasEdge, CanvasNode } from "@/types/canvas";
 import { DEFAULT_NODE_COLOR } from "@/types/canvas";
 
@@ -68,8 +73,14 @@ function CanvasConnectionBoundary() {
 }
 
 function LiveblocksReactFlowCanvas() {
-  const [reactFlowInstance, setReactFlowInstance] =
-    useState<ReactFlowInstance<CanvasNode, CanvasEdge> | null>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
+    CanvasNode,
+    CanvasEdge
+  > | null>(null);
+  const undo = useUndo();
+  const redo = useRedo();
+  const canUndo = useCanUndo();
+  const canRedo = useCanRedo();
   const nodeCounterRef = useRef(0);
   const nodeTypes = useMemo(
     () =>
@@ -112,6 +123,24 @@ function LiveblocksReactFlowCanvas() {
         initial: [],
       },
     });
+
+  const handleUndo = useCallback(() => {
+    if (canUndo) {
+      undo();
+    }
+  }, [canUndo, undo]);
+
+  const handleRedo = useCallback(() => {
+    if (canRedo) {
+      redo();
+    }
+  }, [canRedo, redo]);
+
+  useKeyboardShortcuts({
+    reactFlowInstance,
+    onUndo: handleUndo,
+    onRedo: handleRedo,
+  });
 
   const handleConnect = useCallback(
     (connection: Parameters<typeof onConnect>[0]) => {
@@ -198,20 +227,18 @@ function LiveblocksReactFlowCanvas() {
       defaultMarkerColor="var(--text-primary)"
       fitView
     >
-      <MiniMap<CanvasNode>
-        bgColor="var(--bg-surface)"
-        maskColor="var(--bg-base)"
-        maskStrokeColor="var(--border-default)"
-        nodeColor={(node) => node.data.color.fill}
-        nodeStrokeColor="var(--border-subtle)"
-        pannable
-        zoomable
-      />
       <Background
         color="var(--border-subtle)"
         gap={24}
         size={1.5}
         variant={BackgroundVariant.Dots}
+      />
+      <CanvasControlBar
+        reactFlowInstance={reactFlowInstance}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        canUndo={canUndo}
+        canRedo={canRedo}
       />
       <ShapePanel />
     </ReactFlow>

@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Edge behaviour
+- Canvas ergonomics
 
 ## Current Goal
 
-- `context/feature-specs/16-edge-behaviour.md` is implemented and verified: canvas connections use the custom edge renderer with right-angle routing, arrows, larger interaction hit areas, hover/selected styling, and inline collaborative label editing.
+- `context/feature-specs/17-canvas-ergonomics.md` is implemented and verified: the canvas has bottom-left zoom/history controls, React Flow animated zoom and fit-view actions, Liveblocks undo/redo controls with disabled states, keyboard shortcuts that skip editable fields, and no minimap.
 
 ## Completed
 
@@ -91,6 +91,10 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added `components/editor/canvas-edge.tsx` as the custom canvas edge renderer with smooth-step right-angle routing, dimmed resting edges, brighter hover/selected edges, a widened invisible hit path, and inline label editing via `EdgeLabelRenderer`.
 - Extended canvas edge data with a collaborative `label` field and wired edge label saves through `useReactFlow().updateEdgeData()`.
 - Configured the collaborative canvas so new connections default to the `canvasEdge` type with a light rounded stroke, arrow marker, larger interaction width, and smooth-step connection preview.
+- Added `components/editor/canvas-control-bar.tsx` with a bottom-left pill control bar for animated zoom out, fit view, zoom in, Liveblocks undo, and Liveblocks redo actions.
+- Wired canvas undo/redo through Liveblocks `useUndo`, `useRedo`, `useCanUndo`, and `useCanRedo`, including visually dimmed disabled buttons.
+- Added `hooks/useKeyboardShortcuts.ts` for canvas zoom and history shortcuts, with editable-field shortcut suppression for inputs, textareas, and contenteditable fields.
+- Removed the React Flow minimap from the canvas surface.
 
 ## In Progress
 
@@ -187,3 +191,6 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after edge behaviour implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after edge behaviour implementation.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after edge behaviour implementation.
+- `npm run lint` passed after canvas ergonomics implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after canvas ergonomics implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after canvas ergonomics implementation.
