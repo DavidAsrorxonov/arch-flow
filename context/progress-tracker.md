@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Shape panel
+- Node editing
 
 ## Current Goal
 
-- `context/feature-specs/12-shape-panel.md` is implemented and verified: the workspace canvas has a bottom floating shape toolbar, draggable shape payloads with default sizes, drop-to-create behavior, and a basic custom canvas node renderer.
+- `context/feature-specs/14-node-editing.md` is implemented and verified: selected canvas nodes show subtle resize handles with minimum dimensions, and node labels can be edited inline through the existing collaborative node state flow.
 
 ## Completed
 
@@ -75,6 +75,16 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added typed shape drag payload parsing with shape names and sensible default sizes for each supported node shape.
 - Added React Flow dragover and drop handling to convert screen coordinates to canvas coordinates and create Liveblocks-synced `canvasNode` nodes with empty labels, default node color, dragged shape data, and IDs generated from shape name, timestamp, and a counter.
 - Added `components/editor/canvas-node.tsx` as the basic custom `canvasNode` renderer for this unit, rendering every shape as a simple bordered rectangle with centered label text.
+- Added `components/editor/canvas-shape.tsx` with shared node shape drawing for rectangle, pill, circle, diamond, hexagon, and cylinder nodes.
+- Replaced the placeholder `canvasNode` renderer with shape-specific rendering, using CSS for rectangle, pill, and circle and scalable inline SVGs for diamond, hexagon, and cylinder.
+- Added selected-state shape styling so node borders are subtle at rest and brighter when selected.
+- Added a shape drag ghost preview that follows the cursor while dragging, uses the same shape and default size as the drag payload, and clears on drop or drag cancellation.
+- Added four hover-revealed React Flow connection handles to custom canvas nodes so shapes can be connected from the top, right, bottom, or left side.
+- Replaced the single loose-mode node handles with explicit source and target handle pairs on every node side for reliable React Flow connection start and end behavior.
+- Added selected-only React Flow node resize handles with minimum node dimensions and dark canvas styling.
+- Added centered inline node label display, empty-label placeholder text, and double-click-to-edit behavior.
+- Added textarea-based inline label editing that updates node labels through `useReactFlow().updateNodeData()` as users type.
+- Added blur and Escape handling to close label editing while preventing textarea interactions from dragging or panning the canvas.
 
 ## In Progress
 
@@ -82,7 +92,6 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Add shape-specific custom node visuals only when its feature spec is active.
 - Add custom edge rendering only when its feature spec is active.
 - Add canvas controls, persistence, starter imports, and AI behavior only when their feature specs are active.
 - Add AI chat only when its feature spec is active.
@@ -154,4 +163,16 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun. The build output includes `/editor/[roomId]`.
 - `npm run lint` passed after shape panel implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after shape panel implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after node shape rendering with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after node shape rendering.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after adding node connection handles with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after adding node connection handles.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after replacing node handles with source/target pairs with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after replacing node handles with source/target pairs.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after node editing implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after node editing implementation.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
