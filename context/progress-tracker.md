@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Node color toolbar
+- Edge behaviour
 
 ## Current Goal
 
-- `context/feature-specs/15-nodes-color-toolbar.md` is implemented and verified: selected canvas nodes show a floating predefined color-pair toolbar, and swatch selection updates node background and text color through the existing collaborative canvas state.
+- `context/feature-specs/16-edge-behaviour.md` is implemented and verified: canvas connections use the custom edge renderer with right-angle routing, arrows, larger interaction hit areas, hover/selected styling, and inline collaborative label editing.
 
 ## Completed
 
@@ -88,6 +88,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added a selected-node floating color toolbar with one swatch for each predefined node background/text color pair.
 - Wired color swatches to update node color data through `useReactFlow().updateNodeData()` so changes stay inside the existing Liveblocks-backed canvas state.
 - Updated selected node outlines and resize handles to reflect the active node text color while preserving the selected node background/text pair.
+- Added `components/editor/canvas-edge.tsx` as the custom canvas edge renderer with smooth-step right-angle routing, dimmed resting edges, brighter hover/selected edges, a widened invisible hit path, and inline label editing via `EdgeLabelRenderer`.
+- Extended canvas edge data with a collaborative `label` field and wired edge label saves through `useReactFlow().updateEdgeData()`.
+- Configured the collaborative canvas so new connections default to the `canvasEdge` type with a light rounded stroke, arrow marker, larger interaction width, and smooth-step connection preview.
 
 ## In Progress
 
@@ -95,7 +98,6 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Add custom edge rendering only when its feature spec is active.
 - Add canvas controls, persistence, starter imports, and AI behavior only when their feature specs are active.
 - Add AI chat only when its feature spec is active.
 
@@ -182,3 +184,6 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after node color toolbar implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after node color toolbar implementation.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after node color toolbar implementation.
+- `npm run lint` passed after edge behaviour implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after edge behaviour implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after edge behaviour implementation.

@@ -10,14 +10,19 @@ import { useLiveblocksFlow } from "@liveblocks/react-flow";
 import {
   Background,
   BackgroundVariant,
+  ConnectionLineType,
   ConnectionMode,
+  MarkerType,
   MiniMap,
   ReactFlow,
+  type DefaultEdgeOptions,
+  type EdgeTypes,
   type NodeTypes,
   type ReactFlowInstance,
 } from "@xyflow/react";
 import { useCallback, useMemo, useRef, useState, type DragEvent } from "react";
 
+import { CanvasEdgeRenderer } from "@/components/editor/canvas-edge";
 import { CanvasNodeRenderer } from "@/components/editor/canvas-node";
 import {
   parseShapeDragPayload,
@@ -73,6 +78,30 @@ function LiveblocksReactFlowCanvas() {
       }) satisfies NodeTypes,
     [],
   );
+  const edgeTypes = useMemo(
+    () =>
+      ({
+        canvasEdge: CanvasEdgeRenderer,
+      }) satisfies EdgeTypes,
+    [],
+  );
+  const defaultEdgeOptions = useMemo(
+    () =>
+      ({
+        type: "canvasEdge",
+        data: {
+          label: "",
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: "var(--text-primary)",
+          width: 18,
+          height: 18,
+        },
+        interactionWidth: 24,
+      }) satisfies DefaultEdgeOptions,
+    [],
+  );
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       suspense: true,
@@ -83,6 +112,16 @@ function LiveblocksReactFlowCanvas() {
         initial: [],
       },
     });
+
+  const handleConnect = useCallback(
+    (connection: Parameters<typeof onConnect>[0]) => {
+      onConnect({
+        ...defaultEdgeOptions,
+        ...connection,
+      } as Parameters<typeof onConnect>[0]);
+    },
+    [defaultEdgeOptions, onConnect],
+  );
 
   const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     if (!event.dataTransfer.types.includes(SHAPE_DRAG_MIME_TYPE)) {
@@ -140,14 +179,23 @@ function LiveblocksReactFlowCanvas() {
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
+      defaultEdgeOptions={defaultEdgeOptions}
       onInit={setReactFlowInstance}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
+      onConnect={handleConnect}
       onDelete={onDelete}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       connectionMode={ConnectionMode.Loose}
+      connectionLineType={ConnectionLineType.SmoothStep}
+      connectionLineStyle={{
+        stroke: "var(--text-primary)",
+        strokeOpacity: 0.6,
+        strokeWidth: 2,
+      }}
+      defaultMarkerColor="var(--text-primary)"
       fitView
     >
       <MiniMap<CanvasNode>
