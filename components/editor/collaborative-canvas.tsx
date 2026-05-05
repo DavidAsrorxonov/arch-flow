@@ -13,10 +13,19 @@ import {
   ConnectionMode,
   MiniMap,
   ReactFlow,
+  type NodeTypes,
+  type ReactFlowInstance,
 } from "@xyflow/react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type DragEvent } from "react";
 
+import { CanvasNodeRenderer } from "@/components/editor/canvas-node";
+import {
+  parseShapeDragPayload,
+  ShapePanel,
+  SHAPE_DRAG_MIME_TYPE,
+} from "@/components/editor/shape-panel";
 import type { CanvasEdge, CanvasNode } from "@/types/canvas";
+import { DEFAULT_NODE_COLOR } from "@/types/canvas";
 
 interface CollaborativeCanvasProps {
   roomId: string;
@@ -54,6 +63,16 @@ function CanvasConnectionBoundary() {
 }
 
 function LiveblocksReactFlowCanvas() {
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance<CanvasNode, CanvasEdge> | null>(null);
+  const nodeCounterRef = useRef(0);
+  const nodeTypes = useMemo(
+    () =>
+      ({
+        canvasNode: CanvasNodeRenderer,
+      }) satisfies NodeTypes,
+    [],
+  );
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       suspense: true,
@@ -65,15 +84,69 @@ function LiveblocksReactFlowCanvas() {
       },
     });
 
+  const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
+    if (!event.dataTransfer.types.includes(SHAPE_DRAG_MIME_TYPE)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  }, []);
+
+  const handleDrop = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+
+      if (!reactFlowInstance) {
+        return;
+      }
+
+      const payload = parseShapeDragPayload(
+        event.dataTransfer.getData(SHAPE_DRAG_MIME_TYPE),
+      );
+
+      if (!payload) {
+        return;
+      }
+
+      nodeCounterRef.current += 1;
+
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const newNode: CanvasNode = {
+        id: `${payload.shape}-${Date.now()}-${nodeCounterRef.current}`,
+        type: "canvasNode",
+        position,
+        width: payload.size.width,
+        height: payload.size.height,
+        data: {
+          label: "",
+          color: DEFAULT_NODE_COLOR,
+          shape: payload.shape,
+        },
+      };
+
+      reactFlowInstance.addNodes(newNode);
+    },
+    [reactFlowInstance],
+  );
+
   return (
     <ReactFlow<CanvasNode, CanvasEdge>
       className="bg-base"
       nodes={nodes}
       edges={edges}
+      nodeTypes={nodeTypes}
+      onInit={setReactFlowInstance}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onDelete={onDelete}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
       connectionMode={ConnectionMode.Loose}
       fitView
     >
@@ -92,6 +165,7 @@ function LiveblocksReactFlowCanvas() {
         size={1.5}
         variant={BackgroundVariant.Dots}
       />
+      <ShapePanel />
     </ReactFlow>
   );
 }

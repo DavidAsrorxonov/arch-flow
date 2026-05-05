@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Base canvas
+- Shape panel
 
 ## Current Goal
 
-- `context/feature-specs/11-base-canvas.md` is implemented and verified: the workspace renders a Liveblocks-backed React Flow canvas with synced empty nodes and edges, MiniMap, dot-pattern background, loose connections, and typed shared canvas data.
+- `context/feature-specs/12-shape-panel.md` is implemented and verified: the workspace canvas has a bottom floating shape toolbar, draggable shape payloads with default sizes, drop-to-create behavior, and a basic custom canvas node renderer.
 
 ## Completed
 
@@ -71,6 +71,10 @@ Update this file whenever the current phase, active feature, or implementation s
 - Imported the React Flow stylesheet through `app/globals.css`.
 - Added `components/editor/collaborative-canvas.tsx` with `LiveblocksProvider`, `RoomProvider`, `ClientSideSuspense`, initial presence, Liveblocks error fallback, and `useLiveblocksFlow` wired to React Flow.
 - Replaced the workspace canvas placeholder with the collaborative canvas surface while keeping the `/editor/[roomId]` page server-side.
+- Added `components/editor/shape-panel.tsx` with a bottom-center floating pill toolbar and draggable icon buttons for rectangle, diamond, circle, pill, cylinder, and hexagon nodes.
+- Added typed shape drag payload parsing with shape names and sensible default sizes for each supported node shape.
+- Added React Flow dragover and drop handling to convert screen coordinates to canvas coordinates and create Liveblocks-synced `canvasNode` nodes with empty labels, default node color, dragged shape data, and IDs generated from shape name, timestamp, and a counter.
+- Added `components/editor/canvas-node.tsx` as the basic custom `canvasNode` renderer for this unit, rendering every shape as a simple bordered rectangle with centered label text.
 
 ## In Progress
 
@@ -78,7 +82,8 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Add custom node and edge rendering only when its feature spec is active.
+- Add shape-specific custom node visuals only when its feature spec is active.
+- Add custom edge rendering only when its feature spec is active.
 - Add canvas controls, persistence, starter imports, and AI behavior only when their feature specs are active.
 - Add AI chat only when its feature spec is active.
 
@@ -97,6 +102,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Liveblocks rooms are created as private rooms with `defaultAccesses: []`; application authorization is enforced before issuing a room-scoped session token.
 - Liveblocks cursor colors are deterministic from the Clerk user ID and come from a fixed palette in `lib/liveblocks.ts`.
 - React Flow canvas state is stored under Liveblocks Storage key `flow`; the key is optional in the app type because `useLiveblocksFlow` initializes it with empty nodes and edges after storage loads.
+- Shape drops create nodes through `ReactFlowInstance.addNodes()`, which triggers the controlled `onNodesChange` path backed by `useLiveblocksFlow`.
 
 ## Session Notes
 
@@ -146,3 +152,6 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after base canvas implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after base canvas implementation.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun. The build output includes `/editor/[roomId]`.
+- `npm run lint` passed after shape panel implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after shape panel implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
