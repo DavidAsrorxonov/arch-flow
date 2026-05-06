@@ -8,6 +8,7 @@ import {
   useCanUndo,
   useErrorListener,
   useRedo,
+  useRoom,
   useUndo,
 } from "@liveblocks/react";
 import { useLiveblocksFlow } from "@liveblocks/react-flow";
@@ -111,6 +112,7 @@ function LiveblocksReactFlowCanvas({
   const [pendingFitNodeIds, setPendingFitNodeIds] = useState<string[]>([]);
   const undo = useUndo();
   const redo = useRedo();
+  const room = useRoom();
   const canUndo = useCanUndo();
   const canRedo = useCanRedo();
   const nodeCounterRef = useRef(0);
@@ -266,15 +268,24 @@ function LiveblocksReactFlowCanvas({
         return;
       }
 
-      const templateNodes = template.nodes.map(cloneTemplateNode);
-      const templateEdges = template.edges.map(cloneTemplateEdge);
+      const idMap = new Map(
+        template.nodes.map((node) => [node.id, crypto.randomUUID()]),
+      );
+      const templateNodes = template.nodes.map((node) =>
+        cloneTemplateNode(node, idMap.get(node.id) ?? crypto.randomUUID()),
+      );
+      const templateEdges = template.edges.map((edge) =>
+        cloneTemplateEdge(edge, idMap),
+      );
 
-      onDelete({ nodes, edges });
-      reactFlowInstance.addNodes(templateNodes);
-      reactFlowInstance.addEdges(templateEdges);
-      setPendingFitNodeIds(templateNodes.map((node) => node.id));
+      room.batch(() => {
+        onDelete({ nodes, edges });
+        reactFlowInstance.addNodes(templateNodes);
+        reactFlowInstance.addEdges(templateEdges);
+        setPendingFitNodeIds(templateNodes.map((node) => node.id));
+      });
     },
-    [edges, nodes, onDelete, reactFlowInstance],
+    [edges, nodes, onDelete, reactFlowInstance, room],
   );
 
   return (
@@ -328,9 +339,10 @@ function LiveblocksReactFlowCanvas({
   );
 }
 
-function cloneTemplateNode(node: CanvasNode): CanvasNode {
+function cloneTemplateNode(node: CanvasNode, id: string): CanvasNode {
   return {
     ...node,
+    id,
     selected: false,
     position: { ...node.position },
     data: {
@@ -341,9 +353,15 @@ function cloneTemplateNode(node: CanvasNode): CanvasNode {
   };
 }
 
-function cloneTemplateEdge(edge: CanvasEdge): CanvasEdge {
+function cloneTemplateEdge(
+  edge: CanvasEdge,
+  idMap: ReadonlyMap<string, string>,
+): CanvasEdge {
   return {
     ...edge,
+    id: crypto.randomUUID(),
+    source: idMap.get(edge.source) ?? edge.source,
+    target: idMap.get(edge.target) ?? edge.target,
     selected: false,
     data: {
       label: edge.data?.label ?? "",

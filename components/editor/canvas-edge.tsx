@@ -81,12 +81,20 @@ export function CanvasEdgeRenderer({
     setIsEditing(false);
   }, [draftLabel, id, updateEdgeData]);
 
+  const cancelEditing = useCallback(() => {
+    setDraftLabel(savedLabel);
+    setIsEditing(false);
+  }, [savedLabel]);
+
   function handleLabelKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     event.stopPropagation();
 
-    if (event.key === "Enter" || event.key === "Escape") {
+    if (event.key === "Enter") {
       event.preventDefault();
       commitLabel();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      cancelEditing();
     }
   }
 

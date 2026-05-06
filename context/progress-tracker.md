@@ -100,6 +100,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added a workspace navbar Templates button that opens the starter template modal.
 - Wired starter imports through the existing Liveblocks-backed React Flow state by deleting current nodes and edges, adding the selected template nodes and edges, and fitting the view after the imported nodes load.
 - Refined the starter template modal into a wider desktop layout with larger landscape cards, taller diagram previews, clearer descriptions, and full-width import actions so the full template diagrams are easier to inspect before import.
+- Updated starter template imports to generate fresh node and edge UUIDs per import and remap edge endpoints so imported template elements do not reuse static template IDs.
+- Wrapped starter template canvas replacement in `room.batch()` so delete, add nodes, add edges, and pending fit-view updates are grouped into one Liveblocks history item.
 
 ## In Progress
 
@@ -205,3 +207,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after starter template modal layout refinement with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after starter template modal layout refinement.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after starter template modal layout refinement.
+- `npm run lint` passed after starter template import ID remapping with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after starter template import ID remapping.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after starter template import ID remapping.
+- `npm run lint` passed after batching starter template replacement with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after batching starter template replacement.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after batching starter template replacement.
