@@ -1,6 +1,12 @@
 "use client";
 
-import { Bot, PanelRightClose, PanelRightOpen, Share2 } from "lucide-react";
+import {
+  Bot,
+  LayoutTemplate,
+  PanelRightClose,
+  PanelRightOpen,
+  Share2,
+} from "lucide-react";
 import { useState } from "react";
 
 import { CollaborativeCanvas } from "@/components/editor/collaborative-canvas";
@@ -30,6 +36,7 @@ export function EditorWorkspaceShell({
   const [isProjectSidebarOpen, setIsProjectSidebarOpen] = useState(false);
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(true);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isStarterTemplatesOpen, setIsStarterTemplatesOpen] = useState(false);
   const projectActions = useProjectActions({ activeProjectId: project.id });
   const AiSidebarIcon = isAiSidebarOpen ? PanelRightClose : PanelRightOpen;
 
@@ -41,6 +48,16 @@ export function EditorWorkspaceShell({
         onToggleSidebar={() => setIsProjectSidebarOpen((isOpen) => !isOpen)}
         rightActions={
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              aria-label="Import starter template"
+              onClick={() => setIsStarterTemplatesOpen(true)}
+            >
+              <LayoutTemplate className="h-4 w-4" aria-hidden="true" />
+              Templates
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -81,7 +98,11 @@ export function EditorWorkspaceShell({
       <main className="min-h-0 flex-1 overflow-hidden bg-base">
         <div className="flex h-[calc(100vh-3.5rem)] min-h-0">
           <section className="min-w-0 flex-1 bg-base">
-            <CollaborativeCanvas roomId={project.id} />
+            <CollaborativeCanvas
+              roomId={project.id}
+              isStarterTemplatesOpen={isStarterTemplatesOpen}
+              onStarterTemplatesOpenChange={setIsStarterTemplatesOpen}
+            />
           </section>
 
           <aside

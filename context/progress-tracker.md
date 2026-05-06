@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Canvas ergonomics
+- Starter templates
 
 ## Current Goal
 
-- `context/feature-specs/17-canvas-ergonomics.md` is implemented and verified: the canvas has bottom-left zoom/history controls, React Flow animated zoom and fit-view actions, Liveblocks undo/redo controls with disabled states, keyboard shortcuts that skip editable fields, and no minimap.
+- `context/feature-specs/18-starter-template.md` is implemented and verified: starter canvas templates are defined, the import modal renders template cards with lightweight previews, the workspace navbar opens the modal, and importing a template replaces the current collaborative canvas state before fitting the view.
 
 ## Completed
 
@@ -95,6 +95,11 @@ Update this file whenever the current phase, active feature, or implementation s
 - Wired canvas undo/redo through Liveblocks `useUndo`, `useRedo`, `useCanUndo`, and `useCanRedo`, including visually dimmed disabled buttons.
 - Added `hooks/useKeyboardShortcuts.ts` for canvas zoom and history shortcuts, with editable-field shortcut suppression for inputs, textareas, and contenteditable fields.
 - Removed the React Flow minimap from the canvas surface.
+- Added `components/editor/starter-templates.ts` with typed starter canvas data for microservices, CI/CD pipeline, and event-driven commerce diagrams using the shared canvas types and node color palette.
+- Added `components/editor/starter-templates-modal.tsx` with a dialog, scrollable template-card grid, import buttons, and fixed-viewport SVG previews calculated from template node bounds.
+- Added a workspace navbar Templates button that opens the starter template modal.
+- Wired starter imports through the existing Liveblocks-backed React Flow state by deleting current nodes and edges, adding the selected template nodes and edges, and fitting the view after the imported nodes load.
+- Refined the starter template modal into a wider desktop layout with larger landscape cards, taller diagram previews, clearer descriptions, and full-width import actions so the full template diagrams are easier to inspect before import.
 
 ## In Progress
 
@@ -102,7 +107,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Add canvas controls, persistence, starter imports, and AI behavior only when their feature specs are active.
+- Add canvas persistence and AI behavior only when their feature specs are active.
 - Add AI chat only when its feature spec is active.
 
 ## Open Questions
@@ -194,3 +199,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after canvas ergonomics implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after canvas ergonomics implementation.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after canvas ergonomics implementation.
+- `npm run lint` passed after starter template implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after starter template implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after starter template implementation.
+- `npm run lint` passed after starter template modal layout refinement with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after starter template modal layout refinement.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after starter template modal layout refinement.
