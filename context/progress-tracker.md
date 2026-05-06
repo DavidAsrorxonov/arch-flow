@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Starter templates
+- Presence avatars and cursors
 
 ## Current Goal
 
-- `context/feature-specs/18-starter-template.md` is implemented and verified: starter canvas templates are defined, the import modal renders template cards with lightweight previews, the workspace navbar opens the modal, and importing a template replaces the current collaborative canvas state before fitting the view.
+- `context/feature-specs/19-presence-avatars-cursor.md` is implemented and verified: room participants render in a canvas-local top-right avatar group, the current user is shown through Clerk's `UserButton`, collaborators exclude the active Clerk user, and Liveblocks cursor presence is broadcast from React Flow mouse events.
 
 ## Completed
 
@@ -61,7 +61,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Wired the workspace navbar Share button to open the share dialog.
 - Normalized Clerk email addresses before matching shared projects and accessible workspace records.
 - Installed `@liveblocks/node` because the server SDK was missing from the project dependencies.
-- Configured `liveblocks.config.ts` with typed cursor presence, `isThinking`, and user metadata for name, avatar, and cursor color.
+- Configured `liveblocks.config.ts` with typed cursor presence, `thinking`, and user metadata for name, avatar, and cursor color.
 - Added `lib/liveblocks.ts` with a cached Liveblocks node client and deterministic user ID to cursor color mapping.
 - Extended the Clerk project identity helper with display name and avatar URL metadata for Liveblocks sessions.
 - Added `POST /api/liveblocks-auth` with JSON body validation, Clerk auth, project access checks, private room creation via the project ID, and room-scoped Liveblocks session authorization.
@@ -102,6 +102,10 @@ Update this file whenever the current phase, active feature, or implementation s
 - Refined the starter template modal into a wider desktop layout with larger landscape cards, taller diagram previews, clearer descriptions, and full-width import actions so the full template diagrams are easier to inspect before import.
 - Updated starter template imports to generate fresh node and edge UUIDs per import and remap edge endpoints so imported template elements do not reuse static template IDs.
 - Wrapped starter template canvas replacement in `room.batch()` so delete, add nodes, add edges, and pending fit-view updates are grouped into one Liveblocks history item.
+- Added `components/editor/canvas-presence.tsx` with a canvas-local participant avatar group, collaborator avatar fallback initials, five-avatar overlap limit, `+N` overflow chip, conditional divider, Clerk `UserButton`, and live cursor rendering for other participants only.
+- Updated the collaborative canvas to broadcast Liveblocks cursor presence from React Flow mouse move events and clear cursor presence on mouse leave.
+- Updated Liveblocks presence typing and initial presence to use the spec-defined `thinking` boolean alongside `cursor`.
+- Kept the editor home navbar unchanged while hiding the workspace navbar `UserButton` and rendering the current user profile control in the canvas presence group.
 
 ## In Progress
 
@@ -126,6 +130,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Collaborators remain database email records only; Clerk Backend API is used only to enrich display names and avatars at read time.
 - Liveblocks rooms are created as private rooms with `defaultAccesses: []`; application authorization is enforced before issuing a room-scoped session token.
 - Liveblocks cursor colors are deterministic from the Clerk user ID and come from a fixed palette in `lib/liveblocks.ts`.
+- Room presence uses `cursor` and `thinking`; canvas cursor coordinates are viewport-relative to the React Flow surface.
 - React Flow canvas state is stored under Liveblocks Storage key `flow`; the key is optional in the app type because `useLiveblocksFlow` initializes it with empty nodes and edges after storage loads.
 - Shape drops create nodes through `ReactFlowInstance.addNodes()`, which triggers the controlled `onNodesChange` path backed by `useLiveblocksFlow`.
 
@@ -213,3 +218,6 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after batching starter template replacement with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after batching starter template replacement.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after batching starter template replacement.
+- `npm run lint` passed after presence avatar and cursor implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after presence avatar and cursor implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after presence avatar and cursor implementation.

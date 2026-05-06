@@ -10,6 +10,7 @@ import {
   useRedo,
   useRoom,
   useUndo,
+  useUpdateMyPresence,
 } from "@liveblocks/react";
 import { useLiveblocksFlow } from "@liveblocks/react-flow";
 import {
@@ -31,11 +32,16 @@ import {
   useRef,
   useState,
   type DragEvent,
+  type MouseEvent,
 } from "react";
 
 import { CanvasEdgeRenderer } from "@/components/editor/canvas-edge";
 import { CanvasControlBar } from "@/components/editor/canvas-control-bar";
 import { CanvasNodeRenderer } from "@/components/editor/canvas-node";
+import {
+  CanvasPresenceAvatars,
+  LiveCanvasCursors,
+} from "@/components/editor/canvas-presence";
 import {
   parseShapeDragPayload,
   ShapePanel,
@@ -62,7 +68,7 @@ export function CollaborativeCanvas({
     <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
       <RoomProvider
         id={roomId}
-        initialPresence={{ cursor: null, isThinking: false }}
+        initialPresence={{ cursor: null, thinking: false }}
       >
         <ClientSideSuspense fallback={<CanvasLoadingState />}>
           {() => (
@@ -113,6 +119,7 @@ function LiveblocksReactFlowCanvas({
   const undo = useUndo();
   const redo = useRedo();
   const room = useRoom();
+  const updateMyPresence = useUpdateMyPresence();
   const canUndo = useCanUndo();
   const canRedo = useCanRedo();
   const nodeCounterRef = useRef(0);
@@ -262,6 +269,27 @@ function LiveblocksReactFlowCanvas({
     [reactFlowInstance],
   );
 
+  const handleCanvasMouseMove = useCallback(
+    (event: MouseEvent<HTMLDivElement>) => {
+      const bounds = event.currentTarget.getBoundingClientRect();
+
+      updateMyPresence(
+        {
+          cursor: {
+            x: event.clientX - bounds.left,
+            y: event.clientY - bounds.top,
+          },
+        },
+        { addToHistory: false },
+      );
+    },
+    [updateMyPresence],
+  );
+
+  const handleCanvasMouseLeave = useCallback(() => {
+    updateMyPresence({ cursor: null }, { addToHistory: false });
+  }, [updateMyPresence]);
+
   const handleImportTemplate = useCallback(
     (template: CanvasTemplate) => {
       if (!reactFlowInstance) {
@@ -289,9 +317,9 @@ function LiveblocksReactFlowCanvas({
   );
 
   return (
-    <>
+    <div className="relative h-full w-full bg-base">
       <ReactFlow<CanvasNode, CanvasEdge>
-        className="bg-base"
+        className="h-full w-full bg-base"
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
@@ -302,6 +330,8 @@ function LiveblocksReactFlowCanvas({
         onEdgesChange={onEdgesChange}
         onConnect={handleConnect}
         onDelete={onDelete}
+        onMouseMove={handleCanvasMouseMove}
+        onMouseLeave={handleCanvasMouseLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         connectionMode={ConnectionMode.Loose}
@@ -329,13 +359,15 @@ function LiveblocksReactFlowCanvas({
         />
         <ShapePanel />
       </ReactFlow>
+      <LiveCanvasCursors />
+      <CanvasPresenceAvatars />
 
       <StarterTemplatesModal
         open={isStarterTemplatesOpen}
         onOpenChange={onStarterTemplatesOpenChange}
         onImport={handleImportTemplate}
       />
-    </>
+    </div>
   );
 }
 

@@ -46,6 +46,7 @@ export function EditorWorkspaceShell({
         projectName={project.name}
         isSidebarOpen={isProjectSidebarOpen}
         onToggleSidebar={() => setIsProjectSidebarOpen((isOpen) => !isOpen)}
+        showUserButton={false}
         rightActions={
           <div className="flex items-center gap-2">
             <Button

@@ -12,6 +12,7 @@ interface EditorNavbarProps {
   onToggleSidebar: () => void
   projectName?: string
   rightActions?: ReactNode
+  showUserButton?: boolean
   className?: string
 }
 
@@ -20,6 +21,7 @@ export function EditorNavbar({
   onToggleSidebar,
   projectName,
   rightActions,
+  showUserButton = true,
   className,
 }: EditorNavbarProps) {
   const SidebarIcon = isSidebarOpen ? PanelLeftClose : PanelLeftOpen
@@ -57,7 +59,7 @@ export function EditorNavbar({
 
       <div className="flex flex-1 items-center justify-end gap-3">
         {rightActions}
-        <UserButton />
+        {showUserButton ? <UserButton /> : null}
       </div>
     </header>
   )
