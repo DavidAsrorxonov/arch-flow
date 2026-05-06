@@ -4,34 +4,60 @@ import {
   ClientSideSuspense,
   LiveblocksProvider,
   RoomProvider,
+  useCanRedo,
+  useCanUndo,
   useErrorListener,
+  useRedo,
+  useRoom,
+  useUndo,
 } from "@liveblocks/react";
 import { useLiveblocksFlow } from "@liveblocks/react-flow";
 import {
   Background,
   BackgroundVariant,
+  ConnectionLineType,
   ConnectionMode,
-  MiniMap,
+  MarkerType,
   ReactFlow,
+  type DefaultEdgeOptions,
+  type EdgeTypes,
   type NodeTypes,
   type ReactFlowInstance,
 } from "@xyflow/react";
-import { useCallback, useMemo, useRef, useState, type DragEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+} from "react";
 
+import { CanvasEdgeRenderer } from "@/components/editor/canvas-edge";
+import { CanvasControlBar } from "@/components/editor/canvas-control-bar";
 import { CanvasNodeRenderer } from "@/components/editor/canvas-node";
 import {
   parseShapeDragPayload,
   ShapePanel,
   SHAPE_DRAG_MIME_TYPE,
 } from "@/components/editor/shape-panel";
+import type { CanvasTemplate } from "@/components/editor/starter-templates";
+import { StarterTemplatesModal } from "@/components/editor/starter-templates-modal";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import type { CanvasEdge, CanvasNode } from "@/types/canvas";
 import { DEFAULT_NODE_COLOR } from "@/types/canvas";
 
 interface CollaborativeCanvasProps {
   roomId: string;
+  isStarterTemplatesOpen: boolean;
+  onStarterTemplatesOpenChange: (open: boolean) => void;
 }
 
-export function CollaborativeCanvas({ roomId }: CollaborativeCanvasProps) {
+export function CollaborativeCanvas({
+  roomId,
+  isStarterTemplatesOpen,
+  onStarterTemplatesOpenChange,
+}: CollaborativeCanvasProps) {
   return (
     <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
       <RoomProvider
@@ -39,14 +65,22 @@ export function CollaborativeCanvas({ roomId }: CollaborativeCanvasProps) {
         initialPresence={{ cursor: null, isThinking: false }}
       >
         <ClientSideSuspense fallback={<CanvasLoadingState />}>
-          {() => <CanvasConnectionBoundary />}
+          {() => (
+            <CanvasConnectionBoundary
+              isStarterTemplatesOpen={isStarterTemplatesOpen}
+              onStarterTemplatesOpenChange={onStarterTemplatesOpenChange}
+            />
+          )}
         </ClientSideSuspense>
       </RoomProvider>
     </LiveblocksProvider>
   );
 }
 
-function CanvasConnectionBoundary() {
+function CanvasConnectionBoundary({
+  isStarterTemplatesOpen,
+  onStarterTemplatesOpenChange,
+}: Omit<CollaborativeCanvasProps, "roomId">) {
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const handleError = useCallback((error: Error) => {
@@ -59,18 +93,58 @@ function CanvasConnectionBoundary() {
     return <CanvasErrorState message={connectionError} />;
   }
 
-  return <LiveblocksReactFlowCanvas />;
+  return (
+    <LiveblocksReactFlowCanvas
+      isStarterTemplatesOpen={isStarterTemplatesOpen}
+      onStarterTemplatesOpenChange={onStarterTemplatesOpenChange}
+    />
+  );
 }
 
-function LiveblocksReactFlowCanvas() {
-  const [reactFlowInstance, setReactFlowInstance] =
-    useState<ReactFlowInstance<CanvasNode, CanvasEdge> | null>(null);
+function LiveblocksReactFlowCanvas({
+  isStarterTemplatesOpen,
+  onStarterTemplatesOpenChange,
+}: Omit<CollaborativeCanvasProps, "roomId">) {
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
+    CanvasNode,
+    CanvasEdge
+  > | null>(null);
+  const [pendingFitNodeIds, setPendingFitNodeIds] = useState<string[]>([]);
+  const undo = useUndo();
+  const redo = useRedo();
+  const room = useRoom();
+  const canUndo = useCanUndo();
+  const canRedo = useCanRedo();
   const nodeCounterRef = useRef(0);
   const nodeTypes = useMemo(
     () =>
       ({
         canvasNode: CanvasNodeRenderer,
       }) satisfies NodeTypes,
+    [],
+  );
+  const edgeTypes = useMemo(
+    () =>
+      ({
+        canvasEdge: CanvasEdgeRenderer,
+      }) satisfies EdgeTypes,
+    [],
+  );
+  const defaultEdgeOptions = useMemo(
+    () =>
+      ({
+        type: "canvasEdge",
+        data: {
+          label: "",
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: "var(--text-primary)",
+          width: 18,
+          height: 18,
+        },
+        interactionWidth: 24,
+      }) satisfies DefaultEdgeOptions,
     [],
   );
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
@@ -83,6 +157,60 @@ function LiveblocksReactFlowCanvas() {
         initial: [],
       },
     });
+
+  const handleUndo = useCallback(() => {
+    if (canUndo) {
+      undo();
+    }
+  }, [canUndo, undo]);
+
+  const handleRedo = useCallback(() => {
+    if (canRedo) {
+      redo();
+    }
+  }, [canRedo, redo]);
+
+  useKeyboardShortcuts({
+    reactFlowInstance,
+    onUndo: handleUndo,
+    onRedo: handleRedo,
+  });
+
+  useEffect(() => {
+    if (!reactFlowInstance || pendingFitNodeIds.length === 0) {
+      return;
+    }
+
+    const loadedNodeIds = new Set(nodes.map((node) => node.id));
+    const isTemplateLoaded = pendingFitNodeIds.every((nodeId) =>
+      loadedNodeIds.has(nodeId),
+    );
+
+    if (!isTemplateLoaded) {
+      return;
+    }
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      void reactFlowInstance.fitView({
+        nodes: pendingFitNodeIds.map((id) => ({ id })),
+        padding: 0.22,
+        duration: 320,
+      });
+      setPendingFitNodeIds([]);
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [nodes, pendingFitNodeIds, reactFlowInstance]);
+
+  const handleConnect = useCallback(
+    (connection: Parameters<typeof onConnect>[0]) => {
+      onConnect({
+        ...defaultEdgeOptions,
+        ...connection,
+      } as Parameters<typeof onConnect>[0]);
+    },
+    [defaultEdgeOptions, onConnect],
+  );
 
   const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
     if (!event.dataTransfer.types.includes(SHAPE_DRAG_MIME_TYPE)) {
@@ -134,40 +262,113 @@ function LiveblocksReactFlowCanvas() {
     [reactFlowInstance],
   );
 
-  return (
-    <ReactFlow<CanvasNode, CanvasEdge>
-      className="bg-base"
-      nodes={nodes}
-      edges={edges}
-      nodeTypes={nodeTypes}
-      onInit={setReactFlowInstance}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      onDelete={onDelete}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-      connectionMode={ConnectionMode.Loose}
-      fitView
-    >
-      <MiniMap<CanvasNode>
-        bgColor="var(--bg-surface)"
-        maskColor="var(--bg-base)"
-        maskStrokeColor="var(--border-default)"
-        nodeColor={(node) => node.data.color.fill}
-        nodeStrokeColor="var(--border-subtle)"
-        pannable
-        zoomable
-      />
-      <Background
-        color="var(--border-subtle)"
-        gap={24}
-        size={1.5}
-        variant={BackgroundVariant.Dots}
-      />
-      <ShapePanel />
-    </ReactFlow>
+  const handleImportTemplate = useCallback(
+    (template: CanvasTemplate) => {
+      if (!reactFlowInstance) {
+        return;
+      }
+
+      const idMap = new Map(
+        template.nodes.map((node) => [node.id, crypto.randomUUID()]),
+      );
+      const templateNodes = template.nodes.map((node) =>
+        cloneTemplateNode(node, idMap.get(node.id) ?? crypto.randomUUID()),
+      );
+      const templateEdges = template.edges.map((edge) =>
+        cloneTemplateEdge(edge, idMap),
+      );
+
+      room.batch(() => {
+        onDelete({ nodes, edges });
+        reactFlowInstance.addNodes(templateNodes);
+        reactFlowInstance.addEdges(templateEdges);
+        setPendingFitNodeIds(templateNodes.map((node) => node.id));
+      });
+    },
+    [edges, nodes, onDelete, reactFlowInstance, room],
   );
+
+  return (
+    <>
+      <ReactFlow<CanvasNode, CanvasEdge>
+        className="bg-base"
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        defaultEdgeOptions={defaultEdgeOptions}
+        onInit={setReactFlowInstance}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={handleConnect}
+        onDelete={onDelete}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        connectionMode={ConnectionMode.Loose}
+        connectionLineType={ConnectionLineType.SmoothStep}
+        connectionLineStyle={{
+          stroke: "var(--text-primary)",
+          strokeOpacity: 0.6,
+          strokeWidth: 2,
+        }}
+        defaultMarkerColor="var(--text-primary)"
+        fitView
+      >
+        <Background
+          color="var(--border-subtle)"
+          gap={24}
+          size={1.5}
+          variant={BackgroundVariant.Dots}
+        />
+        <CanvasControlBar
+          reactFlowInstance={reactFlowInstance}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          canUndo={canUndo}
+          canRedo={canRedo}
+        />
+        <ShapePanel />
+      </ReactFlow>
+
+      <StarterTemplatesModal
+        open={isStarterTemplatesOpen}
+        onOpenChange={onStarterTemplatesOpenChange}
+        onImport={handleImportTemplate}
+      />
+    </>
+  );
+}
+
+function cloneTemplateNode(node: CanvasNode, id: string): CanvasNode {
+  return {
+    ...node,
+    id,
+    selected: false,
+    position: { ...node.position },
+    data: {
+      label: node.data.label,
+      color: { ...node.data.color },
+      shape: node.data.shape,
+    },
+  };
+}
+
+function cloneTemplateEdge(
+  edge: CanvasEdge,
+  idMap: ReadonlyMap<string, string>,
+): CanvasEdge {
+  return {
+    ...edge,
+    id: crypto.randomUUID(),
+    source: idMap.get(edge.source) ?? edge.source,
+    target: idMap.get(edge.target) ?? edge.target,
+    selected: false,
+    data: {
+      label: edge.data?.label ?? "",
+    },
+    markerEnd:
+      typeof edge.markerEnd === "object" ? { ...edge.markerEnd } : edge.markerEnd,
+  };
 }
 
 function CanvasLoadingState() {

@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Shape panel
+- Starter templates
 
 ## Current Goal
 
-- `context/feature-specs/12-shape-panel.md` is implemented and verified: the workspace canvas has a bottom floating shape toolbar, draggable shape payloads with default sizes, drop-to-create behavior, and a basic custom canvas node renderer.
+- `context/feature-specs/18-starter-template.md` is implemented and verified: starter canvas templates are defined, the import modal renders template cards with lightweight previews, the workspace navbar opens the modal, and importing a template replaces the current collaborative canvas state before fitting the view.
 
 ## Completed
 
@@ -75,6 +75,33 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added typed shape drag payload parsing with shape names and sensible default sizes for each supported node shape.
 - Added React Flow dragover and drop handling to convert screen coordinates to canvas coordinates and create Liveblocks-synced `canvasNode` nodes with empty labels, default node color, dragged shape data, and IDs generated from shape name, timestamp, and a counter.
 - Added `components/editor/canvas-node.tsx` as the basic custom `canvasNode` renderer for this unit, rendering every shape as a simple bordered rectangle with centered label text.
+- Added `components/editor/canvas-shape.tsx` with shared node shape drawing for rectangle, pill, circle, diamond, hexagon, and cylinder nodes.
+- Replaced the placeholder `canvasNode` renderer with shape-specific rendering, using CSS for rectangle, pill, and circle and scalable inline SVGs for diamond, hexagon, and cylinder.
+- Added selected-state shape styling so node borders are subtle at rest and brighter when selected.
+- Added a shape drag ghost preview that follows the cursor while dragging, uses the same shape and default size as the drag payload, and clears on drop or drag cancellation.
+- Added four hover-revealed React Flow connection handles to custom canvas nodes so shapes can be connected from the top, right, bottom, or left side.
+- Replaced the single loose-mode node handles with explicit source and target handle pairs on every node side for reliable React Flow connection start and end behavior.
+- Added selected-only React Flow node resize handles with minimum node dimensions and dark canvas styling.
+- Added centered inline node label display, empty-label placeholder text, and double-click-to-edit behavior.
+- Added textarea-based inline label editing that updates node labels through `useReactFlow().updateNodeData()` as users type.
+- Added blur and Escape handling to close label editing while preventing textarea interactions from dragging or panning the canvas.
+- Added a selected-node floating color toolbar with one swatch for each predefined node background/text color pair.
+- Wired color swatches to update node color data through `useReactFlow().updateNodeData()` so changes stay inside the existing Liveblocks-backed canvas state.
+- Updated selected node outlines and resize handles to reflect the active node text color while preserving the selected node background/text pair.
+- Added `components/editor/canvas-edge.tsx` as the custom canvas edge renderer with smooth-step right-angle routing, dimmed resting edges, brighter hover/selected edges, a widened invisible hit path, and inline label editing via `EdgeLabelRenderer`.
+- Extended canvas edge data with a collaborative `label` field and wired edge label saves through `useReactFlow().updateEdgeData()`.
+- Configured the collaborative canvas so new connections default to the `canvasEdge` type with a light rounded stroke, arrow marker, larger interaction width, and smooth-step connection preview.
+- Added `components/editor/canvas-control-bar.tsx` with a bottom-left pill control bar for animated zoom out, fit view, zoom in, Liveblocks undo, and Liveblocks redo actions.
+- Wired canvas undo/redo through Liveblocks `useUndo`, `useRedo`, `useCanUndo`, and `useCanRedo`, including visually dimmed disabled buttons.
+- Added `hooks/useKeyboardShortcuts.ts` for canvas zoom and history shortcuts, with editable-field shortcut suppression for inputs, textareas, and contenteditable fields.
+- Removed the React Flow minimap from the canvas surface.
+- Added `components/editor/starter-templates.ts` with typed starter canvas data for microservices, CI/CD pipeline, and event-driven commerce diagrams using the shared canvas types and node color palette.
+- Added `components/editor/starter-templates-modal.tsx` with a dialog, scrollable template-card grid, import buttons, and fixed-viewport SVG previews calculated from template node bounds.
+- Added a workspace navbar Templates button that opens the starter template modal.
+- Wired starter imports through the existing Liveblocks-backed React Flow state by deleting current nodes and edges, adding the selected template nodes and edges, and fitting the view after the imported nodes load.
+- Refined the starter template modal into a wider desktop layout with larger landscape cards, taller diagram previews, clearer descriptions, and full-width import actions so the full template diagrams are easier to inspect before import.
+- Updated starter template imports to generate fresh node and edge UUIDs per import and remap edge endpoints so imported template elements do not reuse static template IDs.
+- Wrapped starter template canvas replacement in `room.batch()` so delete, add nodes, add edges, and pending fit-view updates are grouped into one Liveblocks history item.
 
 ## In Progress
 
@@ -82,9 +109,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Add shape-specific custom node visuals only when its feature spec is active.
-- Add custom edge rendering only when its feature spec is active.
-- Add canvas controls, persistence, starter imports, and AI behavior only when their feature specs are active.
+- Add canvas persistence and AI behavior only when their feature specs are active.
 - Add AI chat only when its feature spec is active.
 
 ## Open Questions
@@ -155,3 +180,36 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after shape panel implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after shape panel implementation.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after node shape rendering with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after node shape rendering.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after adding node connection handles with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after adding node connection handles.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after replacing node handles with source/target pairs with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after replacing node handles with source/target pairs.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after node editing implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after node editing implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun.
+- `npm run lint` passed after node color toolbar implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after node color toolbar implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after node color toolbar implementation.
+- `npm run lint` passed after edge behaviour implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after edge behaviour implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after edge behaviour implementation.
+- `npm run lint` passed after canvas ergonomics implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after canvas ergonomics implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after canvas ergonomics implementation.
+- `npm run lint` passed after starter template implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after starter template implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after starter template implementation.
+- `npm run lint` passed after starter template modal layout refinement with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after starter template modal layout refinement.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after starter template modal layout refinement.
+- `npm run lint` passed after starter template import ID remapping with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after starter template import ID remapping.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after starter template import ID remapping.
+- `npm run lint` passed after batching starter template replacement with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after batching starter template replacement.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after batching starter template replacement.
