@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Bot,
   LayoutTemplate,
   PanelRightClose,
   PanelRightOpen,
@@ -9,6 +8,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { AiSidebar } from "@/components/editor/ai-sidebar";
 import { CollaborativeCanvas } from "@/components/editor/collaborative-canvas";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
@@ -16,7 +16,6 @@ import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { ShareDialog } from "@/components/editor/share-dialog";
 import { Button } from "@/components/ui/button";
 import { useProjectActions } from "@/hooks/use-project-actions";
-import { cn } from "@/lib/utils";
 import type { AccessibleProject } from "@/lib/project-access";
 import type { ProjectListItem } from "@/types/projects";
 
@@ -98,37 +97,17 @@ export function EditorWorkspaceShell({
 
       <main className="min-h-0 flex-1 overflow-hidden bg-base">
         <div className="flex h-[calc(100vh-3.5rem)] min-h-0">
-          <section className="min-w-0 flex-1 bg-base">
+          <section className="relative min-w-0 flex-1 overflow-hidden bg-base">
             <CollaborativeCanvas
               roomId={project.id}
               isStarterTemplatesOpen={isStarterTemplatesOpen}
               onStarterTemplatesOpenChange={setIsStarterTemplatesOpen}
             />
+            <AiSidebar
+              isOpen={isAiSidebarOpen}
+              onClose={() => setIsAiSidebarOpen(false)}
+            />
           </section>
-
-          <aside
-            className={cn(
-              "min-h-0 w-80 max-w-[85vw] shrink-0 border-l border-surface-border bg-surface transition-[width,opacity] duration-200",
-              isAiSidebarOpen
-                ? "opacity-100"
-                : "w-0 overflow-hidden border-l-0 opacity-0",
-            )}
-            aria-hidden={!isAiSidebarOpen}
-          >
-            <div className="flex h-full flex-col">
-              <div className="flex h-14 shrink-0 items-center gap-2 border-b border-surface-border px-4">
-                <Bot className="h-4 w-4 text-ai-text" aria-hidden="true" />
-                <h2 className="text-sm font-semibold text-copy-primary">
-                  AI Assistant
-                </h2>
-              </div>
-              <div className="flex flex-1 items-center justify-center px-6 text-center">
-                <p className="text-sm leading-6 text-copy-muted">
-                  AI chat placeholder
-                </p>
-              </div>
-            </div>
-          </aside>
         </div>
       </main>
 

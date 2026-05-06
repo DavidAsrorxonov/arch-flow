@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Presence avatars and cursors
+- AI sidebar shell
 
 ## Current Goal
 
-- `context/feature-specs/19-presence-avatars-cursor.md` is implemented and verified: room participants render in a canvas-local top-right avatar group, the current user is shown through Clerk's `UserButton`, collaborators exclude the active Clerk user, and Liveblocks cursor presence is broadcast from React Flow mouse events.
+- `context/feature-specs/20-ai-sidebar-shell.md` is implemented and verified: the AI sidebar is separated into a controlled floating component, includes the AI Workspace header, AI Architect and Specs tabs, a chat empty state with starter prompts, prompt input behavior, and a static specs panel.
 
 ## Completed
 
@@ -106,6 +106,10 @@ Update this file whenever the current phase, active feature, or implementation s
 - Updated the collaborative canvas to broadcast Liveblocks cursor presence from React Flow mouse move events and clear cursor presence on mouse leave.
 - Updated Liveblocks presence typing and initial presence to use the spec-defined `thinking` boolean alongside `cursor`.
 - Kept the editor home navbar unchanged while hiding the workspace navbar `UserButton` and rendering the current user profile control in the canvas presence group.
+- Added `components/editor/ai-sidebar.tsx` as a controlled floating AI sidebar component with the preserved right-side slide-over behavior, dark translucent surface, border, shadow, header, and close action.
+- Replaced the inline workspace AI placeholder with the extracted AI sidebar while keeping open/close state in `components/editor/editor-workspace-shell.tsx`.
+- Added the AI Architect tab with a scrollable chat area, empty state, Ghost AI starter prompt chips, local shell message rendering, auto-resizing textarea, and Enter-to-send / Shift+Enter-newline behavior.
+- Added the Specs tab with a Generate Spec button and a static demo spec card with disabled download action.
 
 ## In Progress
 
@@ -114,7 +118,7 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Next Up
 
 - Add canvas persistence and AI behavior only when their feature specs are active.
-- Add AI chat only when its feature spec is active.
+- Add backend-backed AI chat only when its feature spec is active.
 
 ## Open Questions
 
@@ -221,3 +225,6 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after presence avatar and cursor implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after presence avatar and cursor implementation.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after presence avatar and cursor implementation.
+- `npm run lint` passed after AI sidebar shell implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after AI sidebar shell implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after AI sidebar shell implementation.
