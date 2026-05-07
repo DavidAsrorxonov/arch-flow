@@ -43,3 +43,8 @@ export interface CanvasEdgeData extends Record<string, unknown> {
 }
 
 export type CanvasEdge = Edge<CanvasEdgeData, "canvasEdge">;
+
+export interface CanvasSnapshot {
+  nodes: CanvasNode[];
+  edges: CanvasEdge[];
+}

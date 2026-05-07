@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- AI sidebar shell
+- Canvas autosave
 
 ## Current Goal
 
-- `context/feature-specs/20-ai-sidebar-shell.md` is implemented and verified: the AI sidebar is separated into a controlled floating component, includes the AI Workspace header, AI Architect and Specs tabs, a chat empty state with starter prompts, prompt input behavior, and a static specs panel.
+- `context/feature-specs/21-canvas-autosave.md` is implemented and verified: collaborative canvas snapshots are saved to Vercel Blob, the blob URL is stored on the Prisma project record, saved canvases load only into empty Liveblocks rooms, and the workspace navbar shows autosave status.
 
 ## Completed
 
@@ -110,6 +110,13 @@ Update this file whenever the current phase, active feature, or implementation s
 - Replaced the inline workspace AI placeholder with the extracted AI sidebar while keeping open/close state in `components/editor/editor-workspace-shell.tsx`.
 - Added the AI Architect tab with a scrollable chat area, empty state, Ghost AI starter prompt chips, local shell message rendering, auto-resizing textarea, and Enter-to-send / Shift+Enter-newline behavior.
 - Added the Specs tab with a Generate Spec button and a static demo spec card with disabled download action.
+- Installed `@vercel/blob` for canvas snapshot artifact storage.
+- Reused the existing `Project.canvasJsonPath` Prisma field as the canvas blob URL metadata reference.
+- Added `CanvasSnapshot` typing and canvas snapshot runtime validation for API boundaries.
+- Added `GET` and `PUT` routes at `/api/projects/[projectId]/canvas` with Clerk-backed project access checks, Vercel Blob save/load, and Prisma `canvasJsonPath` updates.
+- Added `hooks/use-canvas-autosave.ts` with debounced canvas node/edge saves and `saving`, `saved`, and `error` status tracking.
+- Added saved canvas loading in the collaborative canvas: the editor fetches the saved blob only when the Liveblocks room is empty and skips loading if room nodes or edges already exist.
+- Added a workspace navbar Save status button that shows Saving, Saved, or Save error states.
 
 ## In Progress
 
@@ -137,6 +144,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - Room presence uses `cursor` and `thinking`; canvas cursor coordinates are viewport-relative to the React Flow surface.
 - React Flow canvas state is stored under Liveblocks Storage key `flow`; the key is optional in the app type because `useLiveblocksFlow` initializes it with empty nodes and edges after storage loads.
 - Shape drops create nodes through `ReactFlowInstance.addNodes()`, which triggers the controlled `onNodesChange` path backed by `useLiveblocksFlow`.
+- Canvas snapshots are uploaded to Vercel Blob at `canvas/{projectId}.json` with private access and overwrite enabled; Prisma stores only the returned blob URL in `Project.canvasJsonPath`.
+- Saved canvas snapshots are loaded into Liveblocks only after the room is confirmed empty; any existing room nodes or edges take precedence over persisted blob state to avoid overwriting active collaboration.
 
 ## Session Notes
 
@@ -228,3 +237,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after AI sidebar shell implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after AI sidebar shell implementation.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after AI sidebar shell implementation.
+- `npm install @vercel/blob` initially failed in the sandbox because the npm registry could not be resolved, then passed on an escalated rerun.
+- `npm run lint` passed after canvas autosave implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after canvas autosave implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after canvas autosave implementation. The build output includes `/api/projects/[projectId]/canvas`.

@@ -34,9 +34,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ClerkProvider
           appearance={clerkAppearance}
-          signInUrl="/sign-in"
-          signUpUrl="/sign-up"
-          afterSignOutUrl={"/sign-in"}
+          signInUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL}
+          signUpUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL}
+          afterSignOutUrl={process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL}
         >
           {children}
         </ClerkProvider>

@@ -49,19 +49,26 @@ import {
 } from "@/components/editor/shape-panel";
 import type { CanvasTemplate } from "@/components/editor/starter-templates";
 import { StarterTemplatesModal } from "@/components/editor/starter-templates-modal";
+import {
+  type CanvasSaveStatus,
+  useCanvasAutosave,
+} from "@/hooks/use-canvas-autosave";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import type { CanvasEdge, CanvasNode } from "@/types/canvas";
+import { isCanvasSnapshot } from "@/lib/canvas-snapshot";
+import type { CanvasEdge, CanvasNode, CanvasSnapshot } from "@/types/canvas";
 import { DEFAULT_NODE_COLOR } from "@/types/canvas";
 
 interface CollaborativeCanvasProps {
   roomId: string;
   isStarterTemplatesOpen: boolean;
+  onSaveStatusChange?: (status: CanvasSaveStatus) => void;
   onStarterTemplatesOpenChange: (open: boolean) => void;
 }
 
 export function CollaborativeCanvas({
   roomId,
   isStarterTemplatesOpen,
+  onSaveStatusChange,
   onStarterTemplatesOpenChange,
 }: CollaborativeCanvasProps) {
   return (
@@ -73,7 +80,9 @@ export function CollaborativeCanvas({
         <ClientSideSuspense fallback={<CanvasLoadingState />}>
           {() => (
             <CanvasConnectionBoundary
+              roomId={roomId}
               isStarterTemplatesOpen={isStarterTemplatesOpen}
+              onSaveStatusChange={onSaveStatusChange}
               onStarterTemplatesOpenChange={onStarterTemplatesOpenChange}
             />
           )}
@@ -84,9 +93,11 @@ export function CollaborativeCanvas({
 }
 
 function CanvasConnectionBoundary({
+  roomId,
   isStarterTemplatesOpen,
+  onSaveStatusChange,
   onStarterTemplatesOpenChange,
-}: Omit<CollaborativeCanvasProps, "roomId">) {
+}: CollaborativeCanvasProps) {
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const handleError = useCallback((error: Error) => {
@@ -101,20 +112,26 @@ function CanvasConnectionBoundary({
 
   return (
     <LiveblocksReactFlowCanvas
+      roomId={roomId}
       isStarterTemplatesOpen={isStarterTemplatesOpen}
+      onSaveStatusChange={onSaveStatusChange}
       onStarterTemplatesOpenChange={onStarterTemplatesOpenChange}
     />
   );
 }
 
 function LiveblocksReactFlowCanvas({
+  roomId,
   isStarterTemplatesOpen,
+  onSaveStatusChange,
   onStarterTemplatesOpenChange,
-}: Omit<CollaborativeCanvasProps, "roomId">) {
+}: CollaborativeCanvasProps) {
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
     CanvasNode,
     CanvasEdge
   > | null>(null);
+  const [hasCheckedSavedCanvas, setHasCheckedSavedCanvas] = useState(false);
+  const [hasSkippedSavedLoad, setHasSkippedSavedLoad] = useState(false);
   const [pendingFitNodeIds, setPendingFitNodeIds] = useState<string[]>([]);
   const undo = useUndo();
   const redo = useRedo();
@@ -164,6 +181,29 @@ function LiveblocksReactFlowCanvas({
         initial: [],
       },
     });
+  const nodesRef = useRef(nodes);
+  const edgesRef = useRef(edges);
+  const isAutosaveEnabled =
+    hasCheckedSavedCanvas ||
+    hasSkippedSavedLoad ||
+    nodes.length > 0 ||
+    edges.length > 0;
+
+  useCanvasAutosave({
+    projectId: roomId,
+    nodes,
+    edges,
+    enabled: isAutosaveEnabled,
+    onStatusChange: onSaveStatusChange,
+  });
+
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+
+  useEffect(() => {
+    edgesRef.current = edges;
+  }, [edges]);
 
   const handleUndo = useCallback(() => {
     if (canUndo) {
@@ -208,6 +248,79 @@ function LiveblocksReactFlowCanvas({
 
     return () => window.cancelAnimationFrame(animationFrame);
   }, [nodes, pendingFitNodeIds, reactFlowInstance]);
+
+  useEffect(() => {
+    if (
+      !reactFlowInstance ||
+      hasCheckedSavedCanvas ||
+      hasSkippedSavedLoad
+    ) {
+      return;
+    }
+
+    if (nodes.length > 0 || edges.length > 0) {
+      const timeout = window.setTimeout(() => {
+        setHasSkippedSavedLoad(true);
+      }, 0);
+
+      return () => window.clearTimeout(timeout);
+    }
+
+    let isMounted = true;
+    const flow = reactFlowInstance;
+
+    async function loadSavedCanvas() {
+      try {
+        const response = await fetch(
+          `/api/projects/${encodeURIComponent(roomId)}/canvas`,
+        );
+
+        if (!response.ok) {
+          throw new Error("Saved canvas load failed.");
+        }
+
+        const payload: unknown = await response.json();
+        const canvas = readCanvasSnapshotResponse(payload);
+
+        if (
+          !isMounted ||
+          !canvas ||
+          nodesRef.current.length > 0 ||
+          edgesRef.current.length > 0
+        ) {
+          return;
+        }
+
+        room.batch(() => {
+          flow.addNodes(canvas.nodes);
+          flow.addEdges(canvas.edges);
+          setPendingFitNodeIds(canvas.nodes.map((node) => node.id));
+        });
+      } catch (error) {
+        console.error(error);
+        onSaveStatusChange?.("error");
+      } finally {
+        if (isMounted) {
+          setHasCheckedSavedCanvas(true);
+        }
+      }
+    }
+
+    void loadSavedCanvas();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    edges.length,
+    hasCheckedSavedCanvas,
+    hasSkippedSavedLoad,
+    nodes.length,
+    onSaveStatusChange,
+    reactFlowInstance,
+    room,
+    roomId,
+  ]);
 
   const handleConnect = useCallback(
     (connection: Parameters<typeof onConnect>[0]) => {
@@ -401,6 +514,20 @@ function cloneTemplateEdge(
     markerEnd:
       typeof edge.markerEnd === "object" ? { ...edge.markerEnd } : edge.markerEnd,
   };
+}
+
+function readCanvasSnapshotResponse(value: unknown): CanvasSnapshot | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const canvas = (value as { canvas?: unknown }).canvas;
+
+  if (!isCanvasSnapshot(canvas)) {
+    return null;
+  }
+
+  return canvas;
 }
 
 function CanvasLoadingState() {

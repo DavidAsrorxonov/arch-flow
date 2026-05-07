@@ -1,10 +1,14 @@
 "use client";
 
 import {
+  CheckCircle2,
   LayoutTemplate,
+  LoaderCircle,
   PanelRightClose,
   PanelRightOpen,
+  Save,
   Share2,
+  TriangleAlert,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -15,6 +19,7 @@ import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { ShareDialog } from "@/components/editor/share-dialog";
 import { Button } from "@/components/ui/button";
+import type { CanvasSaveStatus } from "@/hooks/use-canvas-autosave";
 import { useProjectActions } from "@/hooks/use-project-actions";
 import type { AccessibleProject } from "@/lib/project-access";
 import type { ProjectListItem } from "@/types/projects";
@@ -36,6 +41,8 @@ export function EditorWorkspaceShell({
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(true);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isStarterTemplatesOpen, setIsStarterTemplatesOpen] = useState(false);
+  const [canvasSaveStatus, setCanvasSaveStatus] =
+    useState<CanvasSaveStatus>("saved");
   const projectActions = useProjectActions({ activeProjectId: project.id });
   const AiSidebarIcon = isAiSidebarOpen ? PanelRightClose : PanelRightOpen;
 
@@ -48,6 +55,16 @@ export function EditorWorkspaceShell({
         showUserButton={false}
         rightActions={
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              aria-label={`Canvas ${getSaveStatusLabel(canvasSaveStatus).toLowerCase()}`}
+              disabled
+            >
+              {renderSaveStatusIcon(canvasSaveStatus)}
+              {getSaveStatusLabel(canvasSaveStatus)}
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -101,6 +118,7 @@ export function EditorWorkspaceShell({
             <CollaborativeCanvas
               roomId={project.id}
               isStarterTemplatesOpen={isStarterTemplatesOpen}
+              onSaveStatusChange={setCanvasSaveStatus}
               onStarterTemplatesOpenChange={setIsStarterTemplatesOpen}
             />
             <AiSidebar
@@ -121,4 +139,61 @@ export function EditorWorkspaceShell({
       />
     </div>
   );
+}
+
+function getSaveStatusLabel(status: CanvasSaveStatus) {
+  if (status === "saving") {
+    return "Saving";
+  }
+
+  if (status === "error") {
+    return "Save error";
+  }
+
+  return "Saved";
+}
+
+function renderSaveStatusIcon(status: CanvasSaveStatus) {
+  if (status === "saving") {
+    return (
+      <LoaderCircle
+        className={getSaveStatusIconClassName(status)}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <TriangleAlert
+        className={getSaveStatusIconClassName(status)}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  if (status === "saved") {
+    return (
+      <CheckCircle2
+        className={getSaveStatusIconClassName(status)}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  return (
+    <Save className={getSaveStatusIconClassName(status)} aria-hidden="true" />
+  );
+}
+
+function getSaveStatusIconClassName(status: CanvasSaveStatus) {
+  if (status === "saving") {
+    return "h-4 w-4 animate-spin text-brand";
+  }
+
+  if (status === "error") {
+    return "h-4 w-4 text-destructive";
+  }
+
+  return "h-4 w-4 text-success";
 }
