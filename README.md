@@ -16,6 +16,29 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Trigger.dev
+
+Trigger.dev is configured for durable background tasks in `trigger/`.
+
+Required local environment variables:
+
+```bash
+TRIGGER_PROJECT_REF=proj_xxxxxxxxxx
+TRIGGER_SECRET_KEY=tr_dev_xxxxxxxxxx
+```
+
+Run the local Trigger.dev worker:
+
+```bash
+npm run dev:trigger
+```
+
+Deploy registered tasks:
+
+```bash
+npm run deploy:trigger
+```
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
