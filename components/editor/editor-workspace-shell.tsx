@@ -59,6 +59,8 @@ export function EditorWorkspaceShell({
               type="button"
               variant="outline"
               size="sm"
+              role="status"
+              aria-live="polite"
               aria-label={`Canvas ${getSaveStatusLabel(canvasSaveStatus).toLowerCase()}`}
               disabled
             >
@@ -116,6 +118,7 @@ export function EditorWorkspaceShell({
         <div className="flex h-[calc(100vh-3.5rem)] min-h-0">
           <section className="relative min-w-0 flex-1 overflow-hidden bg-base">
             <CollaborativeCanvas
+              key={project.id}
               roomId={project.id}
               isStarterTemplatesOpen={isStarterTemplatesOpen}
               onSaveStatusChange={setCanvasSaveStatus}

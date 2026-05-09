@@ -241,3 +241,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after canvas autosave implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after canvas autosave implementation.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after canvas autosave implementation. The build output includes `/api/projects/[projectId]/canvas`.
+- Verified the canvas autosave room-switch review finding and added `key={project.id}` to the workspace `CollaborativeCanvas` element so saved-load state remounts with each room.
+- `npm run lint` passed after the canvas room-switch remount fix with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after the canvas room-switch remount fix.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after the canvas room-switch remount fix.
