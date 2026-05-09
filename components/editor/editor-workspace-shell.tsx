@@ -1,22 +1,26 @@
 "use client";
 
 import {
-  Bot,
+  CheckCircle2,
   LayoutTemplate,
+  LoaderCircle,
   PanelRightClose,
   PanelRightOpen,
+  Save,
   Share2,
+  TriangleAlert,
 } from "lucide-react";
 import { useState } from "react";
 
+import { AiSidebar } from "@/components/editor/ai-sidebar";
 import { CollaborativeCanvas } from "@/components/editor/collaborative-canvas";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { ShareDialog } from "@/components/editor/share-dialog";
 import { Button } from "@/components/ui/button";
+import type { CanvasSaveStatus } from "@/hooks/use-canvas-autosave";
 import { useProjectActions } from "@/hooks/use-project-actions";
-import { cn } from "@/lib/utils";
 import type { AccessibleProject } from "@/lib/project-access";
 import type { ProjectListItem } from "@/types/projects";
 
@@ -37,6 +41,8 @@ export function EditorWorkspaceShell({
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(true);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isStarterTemplatesOpen, setIsStarterTemplatesOpen] = useState(false);
+  const [canvasSaveStatus, setCanvasSaveStatus] =
+    useState<CanvasSaveStatus>("saved");
   const projectActions = useProjectActions({ activeProjectId: project.id });
   const AiSidebarIcon = isAiSidebarOpen ? PanelRightClose : PanelRightOpen;
 
@@ -46,8 +52,21 @@ export function EditorWorkspaceShell({
         projectName={project.name}
         isSidebarOpen={isProjectSidebarOpen}
         onToggleSidebar={() => setIsProjectSidebarOpen((isOpen) => !isOpen)}
+        showUserButton={false}
         rightActions={
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              role="status"
+              aria-live="polite"
+              aria-label={`Canvas ${getSaveStatusLabel(canvasSaveStatus).toLowerCase()}`}
+              disabled
+            >
+              {renderSaveStatusIcon(canvasSaveStatus)}
+              {getSaveStatusLabel(canvasSaveStatus)}
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -97,37 +116,19 @@ export function EditorWorkspaceShell({
 
       <main className="min-h-0 flex-1 overflow-hidden bg-base">
         <div className="flex h-[calc(100vh-3.5rem)] min-h-0">
-          <section className="min-w-0 flex-1 bg-base">
+          <section className="relative min-w-0 flex-1 overflow-hidden bg-base">
             <CollaborativeCanvas
+              key={project.id}
               roomId={project.id}
               isStarterTemplatesOpen={isStarterTemplatesOpen}
+              onSaveStatusChange={setCanvasSaveStatus}
               onStarterTemplatesOpenChange={setIsStarterTemplatesOpen}
             />
+            <AiSidebar
+              isOpen={isAiSidebarOpen}
+              onClose={() => setIsAiSidebarOpen(false)}
+            />
           </section>
-
-          <aside
-            className={cn(
-              "min-h-0 w-80 max-w-[85vw] shrink-0 border-l border-surface-border bg-surface transition-[width,opacity] duration-200",
-              isAiSidebarOpen
-                ? "opacity-100"
-                : "w-0 overflow-hidden border-l-0 opacity-0",
-            )}
-            aria-hidden={!isAiSidebarOpen}
-          >
-            <div className="flex h-full flex-col">
-              <div className="flex h-14 shrink-0 items-center gap-2 border-b border-surface-border px-4">
-                <Bot className="h-4 w-4 text-ai-text" aria-hidden="true" />
-                <h2 className="text-sm font-semibold text-copy-primary">
-                  AI Assistant
-                </h2>
-              </div>
-              <div className="flex flex-1 items-center justify-center px-6 text-center">
-                <p className="text-sm leading-6 text-copy-muted">
-                  AI chat placeholder
-                </p>
-              </div>
-            </div>
-          </aside>
         </div>
       </main>
 
@@ -141,4 +142,61 @@ export function EditorWorkspaceShell({
       />
     </div>
   );
+}
+
+function getSaveStatusLabel(status: CanvasSaveStatus) {
+  if (status === "saving") {
+    return "Saving";
+  }
+
+  if (status === "error") {
+    return "Save error";
+  }
+
+  return "Saved";
+}
+
+function renderSaveStatusIcon(status: CanvasSaveStatus) {
+  if (status === "saving") {
+    return (
+      <LoaderCircle
+        className={getSaveStatusIconClassName(status)}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <TriangleAlert
+        className={getSaveStatusIconClassName(status)}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  if (status === "saved") {
+    return (
+      <CheckCircle2
+        className={getSaveStatusIconClassName(status)}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  return (
+    <Save className={getSaveStatusIconClassName(status)} aria-hidden="true" />
+  );
+}
+
+function getSaveStatusIconClassName(status: CanvasSaveStatus) {
+  if (status === "saving") {
+    return "h-4 w-4 animate-spin text-brand";
+  }
+
+  if (status === "error") {
+    return "h-4 w-4 text-destructive";
+  }
+
+  return "h-4 w-4 text-success";
 }

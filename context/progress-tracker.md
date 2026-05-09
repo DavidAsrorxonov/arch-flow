@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Starter templates
+- Canvas autosave
 
 ## Current Goal
 
-- `context/feature-specs/18-starter-template.md` is implemented and verified: starter canvas templates are defined, the import modal renders template cards with lightweight previews, the workspace navbar opens the modal, and importing a template replaces the current collaborative canvas state before fitting the view.
+- `context/feature-specs/21-canvas-autosave.md` is implemented and verified: collaborative canvas snapshots are saved to Vercel Blob, the blob URL is stored on the Prisma project record, saved canvases load only into empty Liveblocks rooms, and the workspace navbar shows autosave status.
 
 ## Completed
 
@@ -61,7 +61,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Wired the workspace navbar Share button to open the share dialog.
 - Normalized Clerk email addresses before matching shared projects and accessible workspace records.
 - Installed `@liveblocks/node` because the server SDK was missing from the project dependencies.
-- Configured `liveblocks.config.ts` with typed cursor presence, `isThinking`, and user metadata for name, avatar, and cursor color.
+- Configured `liveblocks.config.ts` with typed cursor presence, `thinking`, and user metadata for name, avatar, and cursor color.
 - Added `lib/liveblocks.ts` with a cached Liveblocks node client and deterministic user ID to cursor color mapping.
 - Extended the Clerk project identity helper with display name and avatar URL metadata for Liveblocks sessions.
 - Added `POST /api/liveblocks-auth` with JSON body validation, Clerk auth, project access checks, private room creation via the project ID, and room-scoped Liveblocks session authorization.
@@ -102,6 +102,21 @@ Update this file whenever the current phase, active feature, or implementation s
 - Refined the starter template modal into a wider desktop layout with larger landscape cards, taller diagram previews, clearer descriptions, and full-width import actions so the full template diagrams are easier to inspect before import.
 - Updated starter template imports to generate fresh node and edge UUIDs per import and remap edge endpoints so imported template elements do not reuse static template IDs.
 - Wrapped starter template canvas replacement in `room.batch()` so delete, add nodes, add edges, and pending fit-view updates are grouped into one Liveblocks history item.
+- Added `components/editor/canvas-presence.tsx` with a canvas-local participant avatar group, collaborator avatar fallback initials, five-avatar overlap limit, `+N` overflow chip, conditional divider, Clerk `UserButton`, and live cursor rendering for other participants only.
+- Updated the collaborative canvas to broadcast Liveblocks cursor presence from React Flow mouse move events and clear cursor presence on mouse leave.
+- Updated Liveblocks presence typing and initial presence to use the spec-defined `thinking` boolean alongside `cursor`.
+- Kept the editor home navbar unchanged while hiding the workspace navbar `UserButton` and rendering the current user profile control in the canvas presence group.
+- Added `components/editor/ai-sidebar.tsx` as a controlled floating AI sidebar component with the preserved right-side slide-over behavior, dark translucent surface, border, shadow, header, and close action.
+- Replaced the inline workspace AI placeholder with the extracted AI sidebar while keeping open/close state in `components/editor/editor-workspace-shell.tsx`.
+- Added the AI Architect tab with a scrollable chat area, empty state, Ghost AI starter prompt chips, local shell message rendering, auto-resizing textarea, and Enter-to-send / Shift+Enter-newline behavior.
+- Added the Specs tab with a Generate Spec button and a static demo spec card with disabled download action.
+- Installed `@vercel/blob` for canvas snapshot artifact storage.
+- Reused the existing `Project.canvasJsonPath` Prisma field as the canvas blob URL metadata reference.
+- Added `CanvasSnapshot` typing and canvas snapshot runtime validation for API boundaries.
+- Added `GET` and `PUT` routes at `/api/projects/[projectId]/canvas` with Clerk-backed project access checks, Vercel Blob save/load, and Prisma `canvasJsonPath` updates.
+- Added `hooks/use-canvas-autosave.ts` with debounced canvas node/edge saves and `saving`, `saved`, and `error` status tracking.
+- Added saved canvas loading in the collaborative canvas: the editor fetches the saved blob only when the Liveblocks room is empty and skips loading if room nodes or edges already exist.
+- Added a workspace navbar Save status button that shows Saving, Saved, or Save error states.
 
 ## In Progress
 
@@ -110,7 +125,7 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Next Up
 
 - Add canvas persistence and AI behavior only when their feature specs are active.
-- Add AI chat only when its feature spec is active.
+- Add backend-backed AI chat only when its feature spec is active.
 
 ## Open Questions
 
@@ -126,8 +141,11 @@ Update this file whenever the current phase, active feature, or implementation s
 - Collaborators remain database email records only; Clerk Backend API is used only to enrich display names and avatars at read time.
 - Liveblocks rooms are created as private rooms with `defaultAccesses: []`; application authorization is enforced before issuing a room-scoped session token.
 - Liveblocks cursor colors are deterministic from the Clerk user ID and come from a fixed palette in `lib/liveblocks.ts`.
+- Room presence uses `cursor` and `thinking`; canvas cursor coordinates are viewport-relative to the React Flow surface.
 - React Flow canvas state is stored under Liveblocks Storage key `flow`; the key is optional in the app type because `useLiveblocksFlow` initializes it with empty nodes and edges after storage loads.
 - Shape drops create nodes through `ReactFlowInstance.addNodes()`, which triggers the controlled `onNodesChange` path backed by `useLiveblocksFlow`.
+- Canvas snapshots are uploaded to Vercel Blob at `canvas/{projectId}.json` with private access and overwrite enabled; Prisma stores only the returned blob URL in `Project.canvasJsonPath`.
+- Saved canvas snapshots are loaded into Liveblocks only after the room is confirmed empty; any existing room nodes or edges take precedence over persisted blob state to avoid overwriting active collaboration.
 
 ## Session Notes
 
@@ -213,3 +231,17 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after batching starter template replacement with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after batching starter template replacement.
 - `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after batching starter template replacement.
+- `npm run lint` passed after presence avatar and cursor implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after presence avatar and cursor implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after presence avatar and cursor implementation.
+- `npm run lint` passed after AI sidebar shell implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after AI sidebar shell implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after AI sidebar shell implementation.
+- `npm install @vercel/blob` initially failed in the sandbox because the npm registry could not be resolved, then passed on an escalated rerun.
+- `npm run lint` passed after canvas autosave implementation with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after canvas autosave implementation.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after canvas autosave implementation. The build output includes `/api/projects/[projectId]/canvas`.
+- Verified the canvas autosave room-switch review finding and added `key={project.id}` to the workspace `CollaborativeCanvas` element so saved-load state remounts with each room.
+- `npm run lint` passed after the canvas room-switch remount fix with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
+- `npx tsc --noEmit` passed after the canvas room-switch remount fix.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after the canvas room-switch remount fix.
