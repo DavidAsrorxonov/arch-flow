@@ -1,13 +1,17 @@
 import { defineConfig } from "@trigger.dev/sdk";
+import { config } from "dotenv";
+
+config({ path: ".env.local" });
+config({ path: ".env" });
 
 const projectRef = process.env.TRIGGER_PROJECT_REF;
-
 if (!projectRef) {
   throw new Error("TRIGGER_PROJECT_REF is required to run Trigger.dev tasks.");
 }
 
 export default defineConfig({
   project: projectRef,
+  runtime: "node",
   dirs: ["./trigger"],
   retries: {
     enabledInDev: false,
