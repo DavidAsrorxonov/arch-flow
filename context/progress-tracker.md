@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Trigger.dev setup
+- Design agent API
 
 ## Current Goal
 
-- Trigger.dev is installed and configured as the durable background task foundation for future AI generation and spec generation work.
+- Backend design-generation task wiring is in place for triggering durable runs, tracking ownership, and issuing run-scoped realtime tokens. AI graph generation is intentionally not implemented yet.
 
 ## Completed
 
@@ -122,6 +122,14 @@ Update this file whenever the current phase, active feature, or implementation s
 - Added `trigger/example.ts` with a typed `trigger-healthcheck` task so the Trigger.dev worker has an initial exported task.
 - Added `dev:trigger` and `deploy:trigger` package scripts and ignored Trigger.dev local state under `.trigger`.
 - Documented the required `TRIGGER_PROJECT_REF` and `TRIGGER_SECRET_KEY` local environment variables in `README.md`.
+- Added a Prisma `TaskRun` model with unique Trigger.dev run IDs, project/user ownership fields, timestamps, a project relation, and the specified run and ownership indexes.
+- Added and applied the `add_task_run_tracking` Prisma migration.
+- Added `trigger/design-agent.ts` with a minimal exported `design-agent` Trigger.dev task that accepts `prompt` and `roomId`, logs the input, and echoes it without AI or canvas mutations.
+- Added shared design-agent API parsing and ownership helpers in `lib/ai-design-api.ts`.
+- Added `POST /api/ai/design` with Clerk identity checks, prompt/project/room validation, project access enforcement, Trigger.dev task triggering, TaskRun persistence, and run ID response.
+- Added `POST /api/ai/design/token` with Clerk identity checks, TaskRun ownership verification, and Trigger.dev public token creation scoped to the requested run.
+- Allowed `/api/ai(.*)` through the Clerk proxy layer so AI API route handlers can return explicit JSON auth and authorization errors.
+- Updated ESLint global ignores to exclude generated Trigger.dev local build output under `.trigger/**`.
 
 ## In Progress
 
@@ -129,8 +137,8 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Add canvas persistence and AI behavior only when their feature specs are active.
-- Add backend-backed AI chat only when its feature spec is active.
+- Wire the AI sidebar to the design-agent API only when its feature spec is active.
+- Add actual AI design generation and canvas updates only when their feature specs are active.
 
 ## Open Questions
 
@@ -151,6 +159,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - Shape drops create nodes through `ReactFlowInstance.addNodes()`, which triggers the controlled `onNodesChange` path backed by `useLiveblocksFlow`.
 - Canvas snapshots are uploaded to Vercel Blob at `canvas/{projectId}.json` with private access and overwrite enabled; Prisma stores only the returned blob URL in `Project.canvasJsonPath`.
 - Saved canvas snapshots are loaded into Liveblocks only after the room is confirmed empty; any existing room nodes or edges take precedence over persisted blob state to avoid overwriting active collaboration.
+- TaskRun records are the ownership boundary for Trigger.dev run token issuance; public tokens are scoped to a verified run ID.
+- `/api/ai(.*)` is public at the Clerk proxy layer, matching the project and Liveblocks API pattern where route handlers perform explicit Clerk checks and return JSON errors.
 
 ## Session Notes
 
@@ -159,6 +169,13 @@ Update this file whenever the current phase, active feature, or implementation s
 - `npm run lint` passed after Trigger.dev setup with the pre-existing warning in `components/editor/share-dialog.tsx` about an unused caught `error`.
 - `npx tsc --noEmit` passed after Trigger.dev setup.
 - `npm exec trigger -- --version` returned `4.4.5`, matching the installed Trigger.dev SDK and build packages.
+- `npx prisma format` passed after adding TaskRun tracking.
+- `npx prisma validate` passed after adding TaskRun tracking.
+- `npx prisma migrate dev --name add_task_run_tracking` initially failed in the sandbox with a schema engine connection error, then passed on an escalated rerun against the configured PostgreSQL database.
+- `npx prisma generate` passed after adding TaskRun tracking.
+- `npx tsc --noEmit` passed after the design agent API implementation.
+- `npm run lint` initially failed because ESLint scanned generated Trigger.dev `.trigger/tmp` bundles, then passed after adding `.trigger/**` to global ignores; the pre-existing `components/editor/share-dialog.tsx` warning remains.
+- `npm run build` initially failed in the sandbox because `next/font/google` could not fetch Google Fonts, then passed on an escalated rerun after the design agent API implementation. The build output includes `/api/ai/design` and `/api/ai/design/token`.
 
 - `npm run lint` passed after project API route implementation.
 - `npx tsc --noEmit` initially failed because `RouteContext` is generated by Next.js, then passed after switching the dynamic route handler context to an explicit promised params type.
